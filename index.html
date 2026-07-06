@@ -858,6 +858,7 @@ async function salvarConfig() {
   };
   Object.assign(configStudio, cfg);
   await saveConfigFirebase(cfg);
+  atualizarHeaderNome();
   showToast('✅ Configurações salvas!');
 }
 
@@ -1916,13 +1917,13 @@ function editarProfissional(id) {
       </div>
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-editar-prof')">Cancelar</button>
-        <button class="btn btn-primary" style="flex:1" onclick="salvarProfissional(${id})">Salvar</button>
+        <button class="btn btn-primary" style="flex:1" onclick="salvarEdicaoProfissional(${id})">Salvar</button>
       </div>
     </div>`;
   openModal('modal-editar-prof');
 }
 
-function salvarProfissional(id) {
+function salvarEdicaoProfissional(id) {
   const prof = FUNCIONARIOS.find(f => f.id === id);
   if (!prof) return;
   const novoNome = document.getElementById('ep-nome').value.trim();
