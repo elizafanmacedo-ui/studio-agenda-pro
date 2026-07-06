@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Studio Elly Designer – Agenda</title>
+<title>Studio Agenda – Agenda</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -213,7 +213,7 @@ textarea { resize:vertical; min-height:80px; }
 <!-- ═══════════ LOGIN ═══════════ -->
 <div id="login-page">
   <div class="login-banner-wrap">
-    <img src="https://cdn.jsdelivr.net/gh/elizafanmacedo-ui/studio-elly/logo-studio.PNG" alt="Studio Elly Designer" id="login-banner-img">
+    <img src="" alt="Studio Elly Designer" id="login-banner-img">
   </div>
   <div class="login-card">
     <div class="login-title">Quem está acessando?</div>
@@ -240,7 +240,7 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ HEADER ═══════════ -->
 <div class="header">
-  <div class="header-logo">Studio Elly <span>Designer</span></div>
+  <div class="header-logo" id="header-nome-studio">Meu Studio</div>
   <div style="display:flex;align-items:center;gap:8px">
     <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#4caf50;display:none"></div>
     <div class="header-user" onclick="logout()" id="user-label">👤 —</div>
@@ -359,7 +359,7 @@ textarea { resize:vertical; min-height:80px; }
     <div class="card-title">⚙️ Configurações do Studio</div>
     <div class="form-group">
       <label>Nome do Studio</label>
-      <input type="text" id="cfg-nome" placeholder="Ex: Studio Elly Designer">
+      <input type="text" id="cfg-nome" placeholder="Ex: Studio Beleza Total">
     </div>
     <div class="form-group">
       <label>WhatsApp do Studio</label>
@@ -618,7 +618,7 @@ let SERVICOS = [...SERVICOS_PADRAO];
 // ═══════════════════════════════════════
 // FIREBASE
 // ═══════════════════════════════════════
-const DB_URL = 'https://studio-elly-default-rtdb.firebaseio.com';
+const DB_URL = 'SUA_URL_FIREBASE_AQUI'; // Ex: https://seu-projeto-default-rtdb.firebaseio.com
 let lancamentosAvulsos = {};
 let fatProfSelecionado = null;
 let agendamentos = [];
@@ -786,6 +786,7 @@ async function loadConfigFromFirebase() {
     const data = await res.json();
     if (data && typeof data === 'object') {
       configStudio = data;
+    atualizarHeaderNome();
       preencherConfig();
     }
   } catch(e) { console.log('Config load error', e); }
@@ -844,6 +845,12 @@ function getConfig(campo, fallback) {
   return (configStudio && configStudio[campo]) ? configStudio[campo] : fallback;
 }
 
+function atualizarHeaderNome() {
+  const nome = getConfig('nome', 'Meu Studio');
+  const el = document.getElementById('header-nome-studio');
+  if (el) el.textContent = nome;
+}
+
 function preencherConfig() {
   const campos = ['nome','whatsapp','endereco','maps','instagram','pix'];
   campos.forEach(c => {
@@ -888,7 +895,7 @@ function buildMsg(template, a) {
   const svcs = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome).join(', ');
   const prof = FUNCIONARIOS.find(f=>f.id===a.profId);
   const maps = getConfig('maps', LOCALIZACAO_PADRAO);
-  const endereco = getConfig('endereco', 'Studio Elly Designer');
+  const endereco = getConfig('endereco', 'Seu Studio');
   return template
     .replace(/{nome}/g, a.nomeCliente || 'Cliente')
     .replace(/{servico}/g, svcs)
@@ -899,9 +906,9 @@ function buildMsg(template, a) {
     .replace(/{maps}/g, maps);
 }
 
-const MSG_CONFIRMAR_PADRAO = `Olá, {nome}! 😊\nSeu agendamento está *confirmado* no *Studio Elly Designer*!\n\n📅 *{data}* às *{hora}*\n✨ *{servico}*\n💅 Profissional: *{profissional}*\n📍 {maps}\n\nTe esperamos! 💕`;
+const MSG_CONFIRMAR_PADRAO = `Olá, {nome}! 😊\nSeu agendamento está *confirmado* no *{studio}*!\n\n📅 *{data}* às *{hora}*\n✨ *{servico}*\n💅 Profissional: *{profissional}*\n📍 {maps}\n\nTe esperamos! 💕`;
 const MSG_LEMBRETE_PADRAO  = `Oi {nome}! 👋\n\n✨ *Lembrete do seu agendamento* ✨\n\n📅 *{data}* às *{hora}*\n💅 Serviço: *{servico}*\n👩 Profissional: *{profissional}*\n📍 {maps}\n\nPodemos confirmar sua presença? 😊\nQualquer dúvida é só chamar! 💬`;
-const MSG_REAGENDAR_PADRAO = `Olá, {nome}! 😊\nPrecisamos reagendar seu horário de *{servico}* marcado para *{data}* às *{hora}*.\n\nPor favor, entre em contato para escolhermos uma nova data! 📅\n\nStudio Elly Designer 💕`;
+const MSG_REAGENDAR_PADRAO = `Olá, {nome}! 😊\nPrecisamos reagendar seu horário de *{servico}* marcado para *{data}* às *{hora}*.\n\nPor favor, entre em contato para escolhermos uma nova data! 📅\n\n{studio} 💕`;
 
 function waLink(fone, msg) {
   const numero = fone.replace(/\D/g,'');
@@ -1356,7 +1363,7 @@ function enviarRelatorio() {
 // ═══════════════════════════════════════
 // LOGIN / AUTH
 // ═══════════════════════════════════════
-const SENHA_PADRAO = 'Nego197353@';
+const SENHA_PADRAO = '1234'; // Troque após o primeiro acesso
 let senhaElly = null;
 let currentUser = null;
 let selectedDate = today();
