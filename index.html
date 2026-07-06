@@ -99,12 +99,15 @@ textarea { resize:vertical; min-height:80px; }
 .day-chip:not(.selected):hover { border-color:var(--rose-light); background:var(--light); }
 
 /* ── TIMELINE ── */
-.prof-tab-wrap { display:grid; grid-template-columns:repeat(3,1fr); position:sticky; top:108px; z-index:80; box-shadow:0 2px 8px rgba(42,31,31,0.2); overflow:hidden; }
-.prof-tab { padding:16px 8px; text-align:center; font-weight:700; font-size:0.9rem; cursor:pointer; color:white; opacity:0.72; transition:all 0.2s; letter-spacing:0.02em; }
+.prof-tab-wrap { display:flex; overflow-x:auto; position:sticky; top:108px; z-index:80; box-shadow:0 2px 8px rgba(42,31,31,0.2); }
+.prof-tab-wrap::-webkit-scrollbar { display:none; }
+.prof-tab { padding:16px 8px; text-align:center; font-weight:700; font-size:0.9rem; cursor:pointer; color:white; opacity:0.72; transition:all 0.2s; letter-spacing:0.02em; flex:1 0 33.33%; min-width:100px; white-space:nowrap; }
 .prof-tab.active { opacity:1; box-shadow:inset 0 -4px 0 rgba(255,255,255,0.75); }
 .pt-rose { background:linear-gradient(135deg,#8a565f,#b67079); }
 .pt-gold { background:linear-gradient(135deg,#a9874d,#ccb178); }
 .pt-green { background:linear-gradient(135deg,var(--sage-dark),var(--sage)); }
+.pt-blue { background:linear-gradient(135deg,#4a6d8c,#6f96b8); }
+.pt-purple { background:linear-gradient(135deg,#7a5a8c,#a37cb8); }
 .grade-table { width:100%; border-collapse:collapse; }
 .grade-table tr { border-bottom:1px solid var(--rose-light); }
 .hora-td { width:58px; font-size:0.74rem; color:var(--mid); font-weight:700; text-align:right; padding:0 10px; height:44px; background:var(--cream); border-right:2px solid #ead4d7; white-space:nowrap; }
@@ -213,7 +216,7 @@ textarea { resize:vertical; min-height:80px; }
 <!-- ═══════════ LOGIN ═══════════ -->
 <div id="login-page">
   <div class="login-banner-wrap">
-    <img src="" alt="Studio Elly Designer" id="login-banner-img">
+    <img src="" alt="Logo do Studio" id="login-banner-img">
   </div>
   <div class="login-card">
     <div class="login-title">Quem está acessando?</div>
@@ -793,7 +796,7 @@ async function saveConfigFirebase(obj) {
 
 // --- SYNC ---
 function startSync() {
-  loadEquipeFirebase().then(() => { renderWeek(); renderTimeline(); });
+  loadEquipeFirebase().then(() => { renderWeek(); renderTimeline(); renderListaEquipeConfig(); });
   loadFromFirebase();
   loadClientesFromFirebase();
   loadServicosFromFirebase();
@@ -1515,9 +1518,9 @@ function moveWeek(dir) { weekOffset += dir; renderWeek(); renderTimeline(); }
 function renderProfTabs() {
   const el = document.getElementById('prof-tab-wrap');
   if (!el) return;
-  const colors = ['pt-rose','pt-gold','pt-green'];
+  const colors = ['pt-rose','pt-gold','pt-green','pt-blue','pt-purple'];
   el.innerHTML = FUNCIONARIOS.map((f, i) =>
-    `<div class="prof-tab ${colors[i]} ${f.id===activeProfId?'active':''}" onclick="trocarProf(${f.id})">${f.nome}</div>`
+    `<div class="prof-tab ${colors[i % colors.length]} ${f.id===activeProfId?'active':''}" onclick="trocarProf(${f.id})">${f.nome}</div>`
   ).join('');
 }
 
