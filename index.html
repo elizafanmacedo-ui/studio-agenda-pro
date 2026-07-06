@@ -217,7 +217,7 @@ textarea { resize:vertical; min-height:80px; }
 <div id="login-page">
   <div class="login-banner-wrap">
     <img src="" alt="Logo do Studio" id="login-banner-img">
-    <div id="login-nome-studio" style="text-align:center;font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--rose-dark);margin-top:8px"></div>
+    <div id="login-nome-studio" style="text-align:center;font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:#3a1f24;text-shadow:0 1px 2px rgba(255,255,255,0.5);margin-top:10px"></div>
   </div>
   <div class="login-card">
     <div class="login-title">Quem está acessando?</div>
@@ -353,6 +353,10 @@ textarea { resize:vertical; min-height:80px; }
       <button class="btn btn-primary btn-sm" onclick="abrirModalNovoProf()">+ Adicionar</button>
     </div>
     <div id="lista-equipe-config" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🎨 Tema do App</div>
+    <div id="lista-temas" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
   </div>
   <div class="card" id="card-firebase-status" style="border:2px solid var(--rose-light)">
     <div class="card-title">🔥 Status do Banco Firebase</div>
@@ -775,7 +779,8 @@ async function loadConfigFromFirebase() {
     const data = await res.json();
     if (data && typeof data === 'object') {
       configStudio = data;
-    atualizarHeaderNome();
+      atualizarHeaderNome();
+      aplicarTema(data.tema || 'rose');
       preencherConfig();
     }
   } catch(e) { console.log('Config load error', e); }
@@ -829,6 +834,71 @@ async function testarFirebase() {
 
 // CONFIGURAÇÃO DO STUDIO
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
+
+// ═══════════════════════════════════════
+// TEMAS DE CORES (masculino / feminino / unissex)
+// ═══════════════════════════════════════
+const TEMAS = {
+  rose: {
+    label: 'Rosé Clássico', publico: 'Feminino',
+    swatch: '#c7868d',
+    vars: { rose:'#c7868d', 'rose-light':'#efd7db', 'rose-dark':'#7e4e57', cream:'#fcf8f5', gold:'#c8ab74', 'gold-light':'#f2e6cf', dark:'#2f2325', mid:'#6f5b60', light:'#f7efea', sage:'#8eb79a', 'sage-dark':'#6e9580' }
+  },
+  lavanda: {
+    label: 'Lavanda', publico: 'Feminino',
+    swatch: '#9b85c4',
+    vars: { rose:'#9b85c4', 'rose-light':'#e3d9f2', 'rose-dark':'#5f4a85', cream:'#faf8fd', gold:'#c8ab74', 'gold-light':'#f2e6cf', dark:'#2b2438', mid:'#665c7a', light:'#f0ecf8', sage:'#8eb79a', 'sage-dark':'#6e9580' }
+  },
+  sage: {
+    label: 'Verde Sálvia', publico: 'Unissex',
+    swatch: '#6e9580',
+    vars: { rose:'#6e9580', 'rose-light':'#d9e6dc', 'rose-dark':'#3f5b48', cream:'#f7faf7', gold:'#c8ab74', 'gold-light':'#f2e6cf', dark:'#232c25', mid:'#5b6f5f', light:'#eef3ee', sage:'#8eb79a', 'sage-dark':'#6e9580' }
+  },
+  grafite: {
+    label: 'Grafite', publico: 'Masculino',
+    swatch: '#4a4f57',
+    vars: { rose:'#4a4f57', 'rose-light':'#d5d8dc', 'rose-dark':'#2b2e33', cream:'#f5f5f6', gold:'#a89060', 'gold-light':'#e8dfc9', dark:'#1c1e21', mid:'#5c6067', light:'#e9eaec', sage:'#5c7a6a', 'sage-dark':'#3f5449' }
+  },
+  marinho: {
+    label: 'Azul Marinho', publico: 'Masculino',
+    swatch: '#2f4a63',
+    vars: { rose:'#2f4a63', 'rose-light':'#d2dbe3', 'rose-dark':'#1a2c3d', cream:'#f5f7f9', gold:'#bfa065', 'gold-light':'#ecdfc4', dark:'#1a2027', mid:'#4c5a68', light:'#e8edf1', sage:'#5c7a6a', 'sage-dark':'#3f5449' }
+  },
+  ambar: {
+    label: 'Âmbar', publico: 'Masculino',
+    swatch: '#8a5a34',
+    vars: { rose:'#8a5a34', 'rose-light':'#e3d2bf', 'rose-dark':'#5a3a20', cream:'#faf6f0', gold:'#c8ab74', 'gold-light':'#f2e6cf', dark:'#2a2018', mid:'#6b5a48', light:'#f0e8dd', sage:'#5c7a6a', 'sage-dark':'#3f5449' }
+  }
+};
+
+function aplicarTema(nomeTema) {
+  const t = TEMAS[nomeTema] || TEMAS.rose;
+  const root = document.documentElement.style;
+  Object.entries(t.vars).forEach(([k,v]) => root.setProperty('--'+k, v));
+}
+
+function renderSeletorTemas() {
+  const el = document.getElementById('lista-temas');
+  if (!el) return;
+  const temaAtual = getConfig('tema', 'rose');
+  el.innerHTML = Object.entries(TEMAS).map(([key, t]) => `
+    <div onclick="escolherTema('${key}')" style="cursor:pointer;text-align:center;padding:10px 6px;border-radius:12px;border:2px solid ${temaAtual===key ? 'var(--rose-dark)' : 'transparent'};background:${temaAtual===key ? 'var(--light)' : 'transparent'}">
+      <div style="width:38px;height:38px;border-radius:50%;background:${t.swatch};margin:0 auto 6px;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div>
+      <div style="font-size:0.75rem;font-weight:600;color:var(--dark)">${t.label}</div>
+      <div style="font-size:0.65rem;color:var(--mid)">${t.publico}</div>
+    </div>
+  `).join('');
+}
+
+async function escolherTema(key) {
+  Object.assign(configStudio, { tema: key });
+  aplicarTema(key);
+  await saveConfigFirebase({ tema: key });
+  renderSeletorTemas();
+  showToast('✅ Tema aplicado!');
+}
+
+
 
 function getConfig(campo, fallback) {
   return (configStudio && configStudio[campo]) ? configStudio[campo] : fallback;
@@ -2133,7 +2203,7 @@ function showPage(id, btn) {
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
   if (id==='faturamento') { fatMesOffset = 0; if (agendamentos.length > 0) { renderFaturamento(); } else { loadFromFirebase().then(() => renderFaturamento()); } }
-  if (id==='config') { testarFirebase(); document.getElementById('card-gerenciar-equipe').style.display=(currentUser===1?'block':'none'); renderListaEquipeConfig(); }
+  if (id==='config') { testarFirebase(); document.getElementById('card-gerenciar-equipe').style.display=(currentUser===1?'block':'none'); renderListaEquipeConfig(); renderSeletorTemas(); }
 }
 
 function openModal(id) {
