@@ -217,6 +217,7 @@ textarea { resize:vertical; min-height:80px; }
 <div id="login-page">
   <div class="login-banner-wrap">
     <img src="" alt="Logo do Studio" id="login-banner-img">
+    <div id="login-nome-studio" style="text-align:center;font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--rose-dark);margin-top:8px"></div>
   </div>
   <div class="login-card">
     <div class="login-title">Quem está acessando?</div>
@@ -837,6 +838,8 @@ function atualizarHeaderNome() {
   const nome = getConfig('nome', 'Meu Studio');
   const el = document.getElementById('header-nome-studio');
   if (el) el.textContent = nome;
+  const elLogin = document.getElementById('login-nome-studio');
+  if (elLogin) elLogin.textContent = nome;
 }
 
 function preencherConfig() {
@@ -2130,7 +2133,7 @@ function showPage(id, btn) {
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
   if (id==='faturamento') { fatMesOffset = 0; if (agendamentos.length > 0) { renderFaturamento(); } else { loadFromFirebase().then(() => renderFaturamento()); } }
-  if (id==='config') { testarFirebase(); }
+  if (id==='config') { testarFirebase(); document.getElementById('card-gerenciar-equipe').style.display=(currentUser===1?'block':'none'); renderListaEquipeConfig(); }
 }
 
 function openModal(id) {
@@ -2188,6 +2191,7 @@ document.querySelectorAll('.modal-bg').forEach(bg => {
 // START
 // ═══════════════════════════════════════
 loadEquipeFirebase().then(() => { initLogin(); });
+loadConfigFromFirebase();
 </script>
 </body>
 </html>
