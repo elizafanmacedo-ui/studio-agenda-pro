@@ -99,9 +99,8 @@ textarea { resize:vertical; min-height:80px; }
 .day-chip:not(.selected):hover { border-color:var(--rose-light); background:var(--light); }
 
 /* ── TIMELINE ── */
-.prof-tab-wrap { display:flex; overflow-x:auto; position:sticky; top:108px; z-index:80; box-shadow:0 2px 8px rgba(42,31,31,0.2); }
-.prof-tab-wrap::-webkit-scrollbar { display:none; }
-.prof-tab { padding:16px 8px; text-align:center; font-weight:700; font-size:0.9rem; cursor:pointer; color:white; opacity:0.72; transition:all 0.2s; letter-spacing:0.02em; flex:1 0 33.33%; min-width:100px; white-space:nowrap; }
+.prof-tab-wrap { display:grid; position:sticky; top:108px; z-index:80; box-shadow:0 2px 8px rgba(42,31,31,0.2); }
+.prof-tab { padding:16px 4px; text-align:center; font-weight:700; font-size:0.95rem; cursor:pointer; color:white; opacity:0.72; transition:all 0.2s; letter-spacing:0.03em; }
 .prof-tab.active { opacity:1; box-shadow:inset 0 -4px 0 rgba(255,255,255,0.75); }
 .pt-rose { background:linear-gradient(135deg,#8a565f,#b67079); }
 .pt-gold { background:linear-gradient(135deg,#a9874d,#ccb178); }
@@ -217,7 +216,7 @@ textarea { resize:vertical; min-height:80px; }
 <div id="login-page">
   <div class="login-banner-wrap">
     <img src="" alt="Logo do Studio" id="login-banner-img">
-    <div id="login-nome-studio" style="text-align:center;font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:#ffffff;text-shadow:0 2px 6px rgba(0,0,0,0.4);margin-top:10px"></div>
+    <div id="login-nome-studio" style="text-align:center;font-family:'Cormorant Garamond',serif;font-weight:700;color:#ffffff;text-shadow:0 2px 6px rgba(0,0,0,0.4);padding:0 20px;line-height:1.15"></div>
   </div>
   <div class="login-card">
     <div class="login-title">Quem está acessando?</div>
@@ -904,13 +903,32 @@ function getConfig(campo, fallback) {
   return (configStudio && configStudio[campo]) ? configStudio[campo] : fallback;
 }
 
+function ajustarFonteAoEspaco(el, tamanhoMax = 34, tamanhoMin = 16) {
+  if (!el) return;
+  const alturaMaxima = tamanhoMax * 1.15 * 2.1; // permite até ~2 linhas antes de reduzir
+  let tamanho = tamanhoMax;
+  el.style.fontSize = tamanho + 'px';
+  // Reduz progressivamente até o texto caber em até 2 linhas
+  while (el.scrollHeight > (tamanho * 1.15 * 2.1) && tamanho > tamanhoMin) {
+    tamanho -= 1;
+    el.style.fontSize = tamanho + 'px';
+  }
+}
+
 function atualizarHeaderNome() {
   const nome = getConfig('nome', 'Meu Studio');
   const el = document.getElementById('header-nome-studio');
   if (el) el.textContent = nome;
   const elLogin = document.getElementById('login-nome-studio');
-  if (elLogin) elLogin.textContent = nome;
+  if (elLogin) {
+    elLogin.textContent = nome;
+    ajustarFonteAoEspaco(elLogin);
+  }
 }
+
+window.addEventListener('resize', () => {
+  ajustarFonteAoEspaco(document.getElementById('login-nome-studio'));
+});
 
 function preencherConfig() {
   const campos = ['nome','whatsapp','endereco','maps','instagram','pix'];
@@ -1588,13 +1606,34 @@ function moveWeek(dir) { weekOffset += dir; renderWeek(); renderTimeline(); }
 // ═══════════════════════════════════════
 // AGENDA — TIMELINE
 // ═══════════════════════════════════════
+function gerarSigla(nome, siglasUsadas) {
+  const palavras = nome.trim().split(/\s+/).filter(Boolean);
+  let base;
+  if (palavras.length >= 2) {
+    base = palavras.slice(0, 3).map(p => p[0].toUpperCase()).join('');
+  } else {
+    base = nome.trim().slice(0, 3).toUpperCase();
+  }
+  let sigla = base;
+  let contador = 2;
+  while (siglasUsadas.has(sigla)) {
+    sigla = base + contador;
+    contador++;
+  }
+  siglasUsadas.add(sigla);
+  return sigla;
+}
+
 function renderProfTabs() {
   const el = document.getElementById('prof-tab-wrap');
   if (!el) return;
   const colors = ['pt-rose','pt-gold','pt-green','pt-blue','pt-purple'];
-  el.innerHTML = FUNCIONARIOS.map((f, i) =>
-    `<div class="prof-tab ${colors[i % colors.length]} ${f.id===activeProfId?'active':''}" onclick="trocarProf(${f.id})">${f.nome}</div>`
-  ).join('');
+  const siglasUsadas = new Set();
+  el.style.gridTemplateColumns = `repeat(${FUNCIONARIOS.length || 1}, 1fr)`;
+  el.innerHTML = FUNCIONARIOS.map((f, i) => {
+    const sigla = gerarSigla(f.nome, siglasUsadas);
+    return `<div class="prof-tab ${colors[i % colors.length]} ${f.id===activeProfId?'active':''}" onclick="trocarProf(${f.id})" title="${f.nome}">${sigla}</div>`;
+  }).join('');
 }
 
 function trocarProf(id) { activeProfId = id; renderTimeline(); }
