@@ -409,12 +409,10 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <!-- ═══════════ MODAL: PROFISSIONAL ═══════════ -->
-<div class="modal" id="modal-prof">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="modal-prof-titulo">Novo Profissional</h3>
-      <button class="modal-close" onclick="closeModal('modal-prof')">×</button>
-    </div>
+<div class="modal-bg" id="modal-prof">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-prof-titulo">Novo Profissional</div>
     <div class="form-group">
       <label>Nome</label>
       <input type="text" id="prof-nome" placeholder="Nome do profissional">
@@ -443,6 +441,7 @@ textarea { resize:vertical; min-height:80px; }
     </div>
     <input type="hidden" id="prof-id-edit">
     <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-prof')">Cancelar</button>
       <button class="btn btn-primary btn-full" onclick="salvarProfissional()">💾 Salvar</button>
     </div>
   </div>
