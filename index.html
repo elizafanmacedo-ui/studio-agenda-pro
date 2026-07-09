@@ -449,7 +449,7 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <!-- ═══════════ FAB ═══════════ -->
-<button class="fab" onclick="openModal('modal-novo-agendamento')" title="Novo agendamento">+</button>
+<button class="fab" id="fab-agendamento" onclick="openModal('modal-novo-agendamento')" title="Novo agendamento">+</button>
 
 <!-- ═══════════ MODAL: NOVO AGENDAMENTO ═══════════ -->
 <div class="modal-bg" id="modal-novo-agendamento">
@@ -2233,11 +2233,13 @@ function formatDate(ds) {
 }
 
 function showPage(id, btn) {
+  document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if (btn) btn.classList.add('active');
   if (id==='agenda') { renderWeek(); renderTimeline(); }
+  document.getElementById('fab-agendamento').style.display = (id==='agenda' ? 'flex' : 'none');
   if (id==='clientes') renderClientes();
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') renderServicos();
