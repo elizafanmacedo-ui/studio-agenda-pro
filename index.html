@@ -1853,8 +1853,32 @@ function cancelarAgendamento() {
   showToast('Agendamento cancelado');
 }
 
+function normalizarTexto(t) {
+  return (t||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+// Resolve o cadastro do cliente ao salvar um agendamento com nome digitado livremente.
+// Retorna: { clienteId, precisaConfirmar, clienteConflito } — se precisaConfirmar=true, pausa o fluxo e pergunta ao usuário.
+function resolverClienteAutomatico(nomeCliente, fone) {
+  const nomeNorm = normalizarTexto(nomeCliente);
+  const foneNorm = (fone||'').replace(/\D/g,'');
+
+  const matchExato = clientes.find(c => normalizarTexto(c.nome) === nomeNorm && (c.fone||'').replace(/\D/g,'') === foneNorm && foneNorm !== '');
+  if (matchExato) return { clienteId: matchExato.id, precisaConfirmar: false };
+
+  const matchNome = clientes.find(c => normalizarTexto(c.nome) === nomeNorm && (c.fone||'').replace(/\D/g,'') !== foneNorm);
+  if (matchNome) return { precisaConfirmar: true, clienteConflito: matchNome };
+
+  const novoCliente = { id: Date.now(), nome: nomeCliente, fone: fone, aniversario:'', obs:'' };
+  clientes.push(novoCliente);
+  saveClienteFirebase(novoCliente);
+  renderClientes();
+  populateClientesSelect();
+  return { clienteId: novoCliente.id, precisaConfirmar: false };
+}
+
 function salvarAgendamento() {
-  const clienteId = parseInt(document.getElementById('na-cliente-cadastrada')?.value||'')||null;
+  let clienteId = parseInt(document.getElementById('na-cliente-cadastrada')?.value||'')||null;
   const nomeCliente = document.getElementById('na-cliente').value.trim();
   const fone = document.getElementById('na-fone').value.trim();
   const servicoIds = [...document.querySelectorAll('.svc-check:checked')].map(c => parseInt(c.value));
@@ -1865,6 +1889,28 @@ function salvarAgendamento() {
 
   if (!nomeCliente || servicoIds.length===0 || !profId || !data || !hora) {
     showToast('Preencha todos os campos obrigatórios'); return;
+  }
+
+  // Se o nome não veio do dropdown (cliente digitada livremente), resolve/cria o cadastro automaticamente
+  if (!clienteId) {
+    const resultado = resolverClienteAutomatico(nomeCliente, fone);
+    if (resultado.precisaConfirmar) {
+      const usarExistente = confirm(
+        `Já existe "${resultado.clienteConflito.nome}" cadastrada com o telefone ${resultado.clienteConflito.fone || '(sem telefone)'}.\n\nOK = usar o cadastro existente\nCancelar = criar um novo cadastro com o telefone "${fone || '(sem telefone)'}"`
+      );
+      if (usarExistente) {
+        clienteId = resultado.clienteConflito.id;
+      } else {
+        const novoCliente = { id: Date.now(), nome: nomeCliente, fone: fone, aniversario:'', obs:'' };
+        clientes.push(novoCliente);
+        saveClienteFirebase(novoCliente);
+        renderClientes();
+        populateClientesSelect();
+        clienteId = novoCliente.id;
+      }
+    } else {
+      clienteId = resultado.clienteId;
+    }
   }
 
   if (editingApptId) {
