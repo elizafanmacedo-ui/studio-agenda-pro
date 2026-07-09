@@ -1841,6 +1841,7 @@ function editarAgendamento() {
     const ids = a.servicoIds || [a.servicoId];
     document.querySelectorAll('.svc-check').forEach(c => { c.checked = ids.includes(parseInt(c.value)); });
     document.getElementById('na-profissional').value = a.profId;
+    renderHistoricoServico();
   }, 100);
   openModal('modal-novo-agendamento');
 }
