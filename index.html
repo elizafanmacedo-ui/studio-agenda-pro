@@ -1976,9 +1976,27 @@ function renderClientes() {
       </div>
       <div class="list-actions">
         ${foneLimpo?`<a href="https://wa.me/55${foneLimpo}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">📲</a>`:''}
+        <button class="btn btn-ghost btn-sm" style="color:#e74c3c" onclick="removerCliente(${c.id})">🗑️</button>
       </div>
     </div>`;
   }).join('');
+}
+
+async function removerCliente(id) {
+  const c = clientes.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Remover "${c.nome}" do cadastro de clientes?\n\nOs agendamentos já feitos continuam no histórico, mas ela deixa de aparecer na lista de clientes.`)) return;
+  try {
+    const res = await fetch(DB_URL + '/clientes/' + id + '.json', { method:'DELETE' });
+    if (!res.ok) { showToast('⚠️ Erro ao remover cliente (Firebase: ' + res.status + ')'); return; }
+    clientes = clientes.filter(x => x.id !== id);
+    renderClientes();
+    populateClientesSelect();
+    showToast('✅ Cliente removida!');
+  } catch(e) {
+    console.error('removerCliente error', e);
+    showToast('❌ Sem conexão com o banco.');
+  }
 }
 
 function editarCliente(id) {
