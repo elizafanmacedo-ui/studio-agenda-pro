@@ -1866,8 +1866,13 @@ function resolverClienteAutomatico(nomeCliente, fone) {
   const matchExato = clientes.find(c => normalizarTexto(c.nome) === nomeNorm && (c.fone||'').replace(/\D/g,'') === foneNorm && foneNorm !== '');
   if (matchExato) return { clienteId: matchExato.id, precisaConfirmar: false };
 
+  // Nome bate, telefone diferente → pergunta (pode ser erro de digitação do telefone)
   const matchNome = clientes.find(c => normalizarTexto(c.nome) === nomeNorm && (c.fone||'').replace(/\D/g,'') !== foneNorm);
-  if (matchNome) return { precisaConfirmar: true, clienteConflito: matchNome };
+  if (matchNome) return { precisaConfirmar: true, clienteConflito: matchNome, tipoConflito: 'nome' };
+
+  // Telefone bate, nome diferente → bloqueia (telefone é único, não pode haver 2 clientes com o mesmo)
+  const matchFone = foneNorm !== '' && clientes.find(c => (c.fone||'').replace(/\D/g,'') === foneNorm && normalizarTexto(c.nome) !== nomeNorm);
+  if (matchFone) return { bloqueado: true, clienteConflito: matchFone };
 
   const novoCliente = { id: Date.now(), nome: nomeCliente, fone: fone, aniversario:'', obs:'' };
   clientes.push(novoCliente);
@@ -1893,7 +1898,14 @@ function salvarAgendamento() {
 
   // Se o nome não veio do dropdown (cliente digitada livremente), resolve/cria o cadastro automaticamente
   if (!clienteId) {
+    if (!fone) {
+      showToast('Telefone é obrigatório para cadastrar um novo cliente'); return;
+    }
     const resultado = resolverClienteAutomatico(nomeCliente, fone);
+    if (resultado.bloqueado) {
+      alert(`Este telefone (${fone}) já pertence a outro cliente: "${resultado.clienteConflito.nome}".\n\nCorrija o telefone ou selecione "${resultado.clienteConflito.nome}" na lista de clientes cadastradas.`);
+      return;
+    }
     if (resultado.precisaConfirmar) {
       const usarExistente = confirm(
         `Já existe "${resultado.clienteConflito.nome}" cadastrada com o telefone ${resultado.clienteConflito.fone || '(sem telefone)'}.\n\nOK = usar o cadastro existente\nCancelar = criar um novo cadastro com o telefone "${fone || '(sem telefone)'}"`
@@ -1988,6 +2000,15 @@ function salvarCliente() {
   const aniversario = document.getElementById('nc-aniversario').value;
   const obs = document.getElementById('nc-obs').value.trim();
   if (!nome) { showToast('Digite o nome da cliente'); return; }
+  if (!fone) { showToast('Telefone é obrigatório'); return; }
+
+  const foneNorm = fone.replace(/\D/g,'');
+  const conflito = clientes.find(c => c.id !== editingClienteId && (c.fone||'').replace(/\D/g,'') === foneNorm && foneNorm !== '');
+  if (conflito) {
+    alert(`Este telefone já pertence a outro cliente: "${conflito.nome}".\n\nCada cliente precisa ter um telefone diferente.`);
+    return;
+  }
+
   if (editingClienteId) {
     const c = clientes.find(x => x.id === editingClienteId);
     if (c) { Object.assign(c, { nome, fone, aniversario, obs }); saveClienteFirebase(c); }
