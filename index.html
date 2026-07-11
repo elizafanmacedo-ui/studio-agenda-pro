@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Studio Elly Designer – Agenda</title>
+<title>Studio Agenda – Agenda</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -28,7 +28,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 
 /* ── HEADER ── */
 .header {
-  background: linear-gradient(135deg, var(--dark) 0%, var(--rose-dark) 55%, var(--rose) 100%);
+  background: linear-gradient(135deg, #4a3137 0%, #8e5963 55%, #bf7f89 100%);
   color: white; padding: 12px 16px 10px;
   display: flex; align-items: center; justify-content: space-between;
   position: sticky; top: 0; z-index: 100;
@@ -99,12 +99,14 @@ textarea { resize:vertical; min-height:80px; }
 .day-chip:not(.selected):hover { border-color:var(--rose-light); background:var(--light); }
 
 /* ── TIMELINE ── */
-.prof-tab-wrap { display:grid; grid-template-columns:repeat(3,1fr); position:sticky; top:108px; z-index:80; box-shadow:0 2px 8px rgba(42,31,31,0.2); overflow:hidden; }
-.prof-tab { padding:16px 8px; text-align:center; font-weight:700; font-size:0.9rem; cursor:pointer; color:white; opacity:0.72; transition:all 0.2s; letter-spacing:0.02em; }
+.prof-tab-wrap { display:grid; position:sticky; top:108px; z-index:80; box-shadow:0 2px 8px rgba(42,31,31,0.2); }
+.prof-tab { padding:16px 4px; text-align:center; font-weight:700; font-size:0.95rem; cursor:pointer; color:white; opacity:0.72; transition:all 0.2s; letter-spacing:0.03em; }
 .prof-tab.active { opacity:1; box-shadow:inset 0 -4px 0 rgba(255,255,255,0.75); }
 .pt-rose { background:linear-gradient(135deg,#8a565f,#b67079); }
 .pt-gold { background:linear-gradient(135deg,#a9874d,#ccb178); }
 .pt-green { background:linear-gradient(135deg,var(--sage-dark),var(--sage)); }
+.pt-blue { background:linear-gradient(135deg,#4a6d8c,#6f96b8); }
+.pt-purple { background:linear-gradient(135deg,#7a5a8c,#a37cb8); }
 .grade-table { width:100%; border-collapse:collapse; }
 .grade-table tr { border-bottom:1px solid var(--rose-light); }
 .hora-td { width:58px; font-size:0.74rem; color:var(--mid); font-weight:700; text-align:right; padding:0 10px; height:44px; background:var(--cream); border-right:2px solid #ead4d7; white-space:nowrap; }
@@ -133,7 +135,7 @@ textarea { resize:vertical; min-height:80px; }
 .list-actions { display:flex; gap:6px; }
 
 /* ── FAB ── */
-.fab { position:fixed; bottom:18px; right:14px; z-index:200; width:50px; height:50px; border-radius:50%; background:linear-gradient(145deg,var(--rose-light) 0%,var(--rose) 55%,var(--rose-dark) 100%); color:#fff8f5; font-size:1.55rem; font-weight:800; border:1px solid rgba(255,255,255,0.28); cursor:pointer; box-shadow:inset 0 2px 0 rgba(255,255,255,0.35),inset 0 -4px 8px rgba(84,40,50,0.28),0 9px 18px rgba(126,78,87,0.28); display:flex; align-items:center; justify-content:center; transition:transform 0.2s,box-shadow 0.2s; }
+.fab { position:fixed; bottom:18px; right:14px; z-index:200; width:50px; height:50px; border-radius:50%; background:linear-gradient(145deg,#e2a1a8 0%,#b8757f 55%,#8c505b 100%); color:#fff8f5; font-size:1.55rem; font-weight:800; border:1px solid rgba(255,255,255,0.28); cursor:pointer; box-shadow:inset 0 2px 0 rgba(255,255,255,0.35),inset 0 -4px 8px rgba(84,40,50,0.28),0 9px 18px rgba(126,78,87,0.28); display:flex; align-items:center; justify-content:center; transition:transform 0.2s,box-shadow 0.2s; }
 .fab:hover { transform:translateY(-2px) scale(1.06); }
 
 /* ── MODAL ── */
@@ -213,7 +215,8 @@ textarea { resize:vertical; min-height:80px; }
 <!-- ═══════════ LOGIN ═══════════ -->
 <div id="login-page">
   <div class="login-banner-wrap">
-    <img src="https://cdn.jsdelivr.net/gh/elizafanmacedo-ui/studio-elly/logo-studio.PNG" alt="Studio Elly Designer" id="login-banner-img">
+    <img src="" alt="Logo do Studio" id="login-banner-img">
+    <div id="login-nome-studio" style="text-align:center;font-family:'Cormorant Garamond',serif;font-weight:700;color:#ffffff;text-shadow:0 2px 6px rgba(0,0,0,0.4);padding:0 20px;line-height:1.15"></div>
   </div>
   <div class="login-card">
     <div class="login-title">Quem está acessando?</div>
@@ -240,7 +243,7 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ HEADER ═══════════ -->
 <div class="header">
-  <div class="header-logo">Studio Elly <span>Designer</span></div>
+  <div class="header-logo" id="header-nome-studio">Meu Studio</div>
   <div style="display:flex;align-items:center;gap:8px">
     <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#4caf50;display:none"></div>
     <div style="display:flex;align-items:center;gap:6px">
@@ -258,7 +261,6 @@ textarea { resize:vertical; min-height:80px; }
   <button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button>
   <button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button>
   <button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button>
-  <button class="nav-btn" id="nav-temas" onclick="showPage('temas',this)"><span class="nav-icon">🎨</span>Temas</button>
   <button class="nav-btn" id="nav-config" style="display:none" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button>
 </nav>
 
@@ -347,31 +349,28 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <!-- ═══════════ CONFIG ═══════════ -->
-<!-- ═══════════ TEMAS (acessível a todos os usuários) ═══════════ -->
-<div class="page" id="page-temas">
+<div class="page" id="page-config">
+  <div class="card" id="card-gerenciar-equipe" style="display:none">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>👥 Gerenciar Equipe</span>
+      <button class="btn btn-primary btn-sm" onclick="abrirModalNovoProf()">+ Adicionar</button>
+    </div>
+    <div id="lista-equipe-config" style="margin-top:8px"></div>
+  </div>
   <div class="card">
     <div class="card-title">🎨 Tema do App</div>
-    <p style="font-size:0.85rem;color:var(--mid);margin-bottom:10px">Escolha as cores só do seu usuário. Cada pessoa pode ter uma cor diferente — a sua troca não muda a tela de ninguém mais.</p>
-    <div class="lista-temas-target" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+    <div id="lista-temas" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
   </div>
-</div>
-
-<div class="page" id="page-config">
   <div class="card" id="card-firebase-status" style="border:2px solid var(--rose-light)">
     <div class="card-title">🔥 Status do Banco Firebase</div>
     <div id="firebase-diag" style="font-size:0.85rem;color:var(--mid)">Verificando...</div>
     <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="testarFirebase()">🔄 Testar conexão</button>
   </div>
   <div class="card">
-    <div class="card-title">🎨 Tema do App</div>
-    <p style="font-size:0.85rem;color:var(--mid);margin-bottom:10px">Escolha as cores só do seu usuário.</p>
-    <div class="lista-temas-target" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
-  </div>
-  <div class="card">
     <div class="card-title">⚙️ Configurações do Studio</div>
     <div class="form-group">
       <label>Nome do Studio</label>
-      <input type="text" id="cfg-nome" placeholder="Ex: Studio Elly Designer">
+      <input type="text" id="cfg-nome" placeholder="Ex: Studio Beleza Total">
     </div>
     <div class="form-group">
       <label>WhatsApp do Studio</label>
@@ -410,6 +409,45 @@ textarea { resize:vertical; min-height:80px; }
       <textarea id="cfg-msg-reagendar" rows="3" placeholder="Use {nome}, {servico}, {data}, {hora}"></textarea>
     </div>
     <button class="btn btn-primary btn-full" onclick="salvarMensagens()">💾 Salvar Mensagens</button>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: PROFISSIONAL ═══════════ -->
+<div class="modal-bg" id="modal-prof">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-prof-titulo">Novo Profissional</div>
+    <div class="form-group">
+      <label>Nome</label>
+      <input type="text" id="prof-nome" placeholder="Nome do profissional">
+    </div>
+    <div class="form-group">
+      <label>Função</label>
+      <input type="text" id="prof-role" placeholder="Ex: Especialista em Cabelos">
+    </div>
+    <div class="form-group">
+      <label>Emoji</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="prof-emoji-opts">
+        <button onclick="selecionarEmoji('👑')" class="btn btn-ghost btn-sm">👑</button>
+        <button onclick="selecionarEmoji('✂️')" class="btn btn-ghost btn-sm">✂️</button>
+        <button onclick="selecionarEmoji('💅')" class="btn btn-ghost btn-sm">💅</button>
+        <button onclick="selecionarEmoji('💇')" class="btn btn-ghost btn-sm">💇</button>
+        <button onclick="selecionarEmoji('🌸')" class="btn btn-ghost btn-sm">🌸</button>
+        <button onclick="selecionarEmoji('💆')" class="btn btn-ghost btn-sm">💆</button>
+        <button onclick="selecionarEmoji('🎨')" class="btn btn-ghost btn-sm">🎨</button>
+        <button onclick="selecionarEmoji('⭐')" class="btn btn-ghost btn-sm">⭐</button>
+      </div>
+      <input type="text" id="prof-emoji" placeholder="Ou digite um emoji" style="margin-top:8px">
+    </div>
+    <div class="form-group">
+      <label>Senha de acesso</label>
+      <input type="password" id="prof-senha" placeholder="Senha para login">
+    </div>
+    <input type="hidden" id="prof-id-edit">
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-prof')">Cancelar</button>
+      <button class="btn btn-primary btn-full" onclick="salvarProfissional()">💾 Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -479,7 +517,6 @@ textarea { resize:vertical; min-height:80px; }
   </div>
 </div>
 
-<!-- ═══════════ MODAL: NOVA CLIENTE ═══════════ -->
 <!-- ═══════════ MODAL: HISTÓRICO DE SERVIÇO ═══════════ -->
 <div class="modal-bg" id="modal-historico-servico" style="z-index:700">
   <div class="modal">
@@ -490,6 +527,7 @@ textarea { resize:vertical; min-height:80px; }
   </div>
 </div>
 
+<!-- ═══════════ MODAL: NOVA CLIENTE ═══════════ -->
 <div class="modal-bg" id="modal-nova-cliente">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -566,112 +604,54 @@ textarea { resize:vertical; min-height:80px; }
 // ═══════════════════════════════════════
 // DADOS BASE
 // ═══════════════════════════════════════
-const FUNCIONARIOS = [
-  { id:1, nome:'Elly',  cor:'av-rose', emoji:'👑', role:'Proprietária & Especialista' },
-  { id:2, nome:'Denny', cor:'av-gold', emoji:'✂️', role:'Especialista em Cabelos' },
-  { id:3, nome:'Lanna', cor:'av-green', emoji:'💅', role:'Especialista em Beleza' },
+const CORES_DISPONIVEIS = ['av-rose','av-gold','av-green','av-blue','av-purple'];
+const EMOJIS_DISPONIVEIS = ['👑','✂️','💅','💇','🌸'];
+let FUNCIONARIOS = [
+  { id:1, nome:'Admin', cor:'av-rose', emoji:'👑', role:'Proprietário(a)' },
 ];
 
-// Serviços padrão (fallback se Firebase estiver vazio)
+// Serviços padrão (genéricos, editáveis/apagáveis pelo usuário — versão de distribuição)
 const SERVICOS_PADRAO = [
-  { id:1,  nome:'Micropigmentação sobrancelhas', duracao:90,  preco:250, profissionais:[1], cat:'Micropigmentação' },
-  { id:2,  nome:'Micropigmentação Barba',        duracao:150, preco:null, profissionais:[1], cat:'Micropigmentação' },
-  { id:3,  nome:'Micropigmentação Capilar',      duracao:150, preco:null, profissionais:[1], cat:'Micropigmentação' },
-  { id:4,  nome:'Progressiva',     duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
-  { id:5,  nome:'Selagem',         duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
-  { id:6,  nome:'Escova',          duracao:60,  preco:null, profissionais:[2,3], cat:'Acabamento' },
-  { id:7,  nome:'Chapinha',        duracao:45,  preco:null, profissionais:[2,3], cat:'Acabamento' },
-  { id:8,  nome:'Botox Capilar',   duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
-  { id:9,  nome:'Corte Feminino',  duracao:45,  preco:null, profissionais:[1],   cat:'Corte' },
-  { id:10, nome:'Designer de Sobrancelha', duracao:15, preco:null, profissionais:[1,3], cat:'Estética' },
-  { id:11, nome:'Henna',           duracao:30,  preco:null, profissionais:[1,3], cat:'Estética' },
-  { id:12, nome:'Buço',            duracao:15,  preco:null, profissionais:[1,3], cat:'Depilação' },
-  { id:13, nome:'Cauterização',    duracao:90,  preco:null, profissionais:[2,3], cat:'Tratamento' },
-  { id:14, nome:'Banho de Brilho', duracao:90,  preco:null, profissionais:[2],   cat:'Acabamento' },
-  { id:15, nome:'Hidratação',      duracao:30,  preco:null, profissionais:[2,3], cat:'Tratamento' },
-  { id:16, nome:'Depilação Facial',duracao:30,  preco:null, profissionais:[1,3], cat:'Depilação' },
-  { id:17, nome:'Luzes e Mechas',  duracao:180, preco:null, profissionais:[2],   cat:'Coloração' },
-  { id:18, nome:'Morena Iluminada',duracao:180, preco:null, profissionais:[2],   cat:'Coloração' },
+  { id:1, nome:'Corte',           duracao:45, preco:null, profissionais:[1], cat:'Corte' },
+  { id:2, nome:'Escova',          duracao:60, preco:null, profissionais:[1], cat:'Acabamento' },
+  { id:3, nome:'Hidratação',      duracao:30, preco:null, profissionais:[1], cat:'Tratamento' },
+  { id:4, nome:'Designer de Sobrancelha', duracao:15, preco:null, profissionais:[1], cat:'Estética' },
+  { id:5, nome:'Manicure',        duracao:45, preco:null, profissionais:[1], cat:'Estética' },
 ];
 
 let SERVICOS = [...SERVICOS_PADRAO];
 
 // ═══════════════════════════════════════
+// SISTEMA DE COMISSÃO
+// ═══════════════════════════════════════
+// Nomes de referência de serviços que contêm química (usados para detectar
+// automaticamente, por aproximação de nome, se um serviço do catálogo é "com química")
+const SERVICOS_QUIMICA_REF = [
+  'hidratacao profunda','spa capilar','nutricao capilar','reconstrucao capilar',
+  'luzes','mechas','balayage','morena iluminada','ombre hair','descoloracao',
+  'wella','matizacao','tonalizante','selagem','progressiva','botox capilar',
+  'cauterizacao','relaxamento','alisamento','permanente','cachos quimicos',
+  'micropigmentacao','coloracao','tintura','retoque de raiz'
+];
+
+function servicoTemQuimica(nomeServico) {
+  const n = normalizarTexto(nomeServico);
+  return SERVICOS_QUIMICA_REF.some(ref => n.includes(ref));
+}
+
+function percentualComissao(nomeServico) {
+  return servicoTemQuimica(nomeServico) ? 0.45 : 0.50;
+}
+
+// ═══════════════════════════════════════
 // FIREBASE
 // ═══════════════════════════════════════
-const DB_URL = 'https://studio-elly-default-rtdb.firebaseio.com';
+const DB_URL = 'https://studio-agenda-pro-teste-default-rtdb.firebaseio.com';
 let lancamentosAvulsos = {};
 let fatProfSelecionado = null;
 let agendamentos = [];
 let clientes = [];
 let configStudio = {};
-
-// ═══════════════════════════════════════
-// TEMAS DE CORES (masculino / feminino / unissex)
-// ═══════════════════════════════════════
-const TEMAS = {
-  rose: {
-    label: 'Rosé Clássico', publico: 'Feminino',
-    swatch: '#c49a9e',
-    vars: { rose:'#d0b0b3', 'rose-light':'#f2e7e8', 'rose-dark':'#957175', cream:'#fbf9f7', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#4c4446', mid:'#918587', light:'#f6f1ee', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
-  },
-  lavanda: {
-    label: 'Lavanda', publico: 'Feminino',
-    swatch: '#a99bc0',
-    vars: { rose:'#bbb1cd', 'rose-light':'#ece6f2', 'rose-dark':'#7c6f93', cream:'#faf9fc', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#463f51', mid:'#8b8598', light:'#f3f1fa', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
-  },
-  sage: {
-    label: 'Verde Sálvia', publico: 'Unissex',
-    swatch: '#8aa693',
-    vars: { rose:'#a4bcac', 'rose-light':'#e5eee7', 'rose-dark':'#738f7d', cream:'#f8faf8', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#3d453f', mid:'#849087', light:'#f0f4f0', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
-  },
-  grafite: {
-    label: 'Grafite', publico: 'Masculino',
-    swatch: '#6b7078',
-    vars: { rose:'#8a8e94', 'rose-light':'#e3e4e6', 'rose-dark':'#5e6268', cream:'#f6f6f7', gold:'#c2b394', 'gold-light':'#ece3d0', dark:'#414449', mid:'#82858a', light:'#ebecee', sage:'#a1b0a7', 'sage-dark':'#84968b' }
-  },
-  marinho: {
-    label: 'Azul Marinho', publico: 'Masculino',
-    swatch: '#546e82',
-    vars: { rose:'#7590a2', 'rose-light':'#e0e7ec', 'rose-dark':'#4c6373', cream:'#f6f8f9', gold:'#c4b088', 'gold-light':'#eee4cf', dark:'#3a444c', mid:'#77848e', light:'#e9edf0', sage:'#a1b0a7', 'sage-dark':'#84968b' }
-  },
-  ambar: {
-    label: 'Âmbar', publico: 'Masculino',
-    swatch: '#a17d5c',
-    vars: { rose:'#b6987b', 'rose-light':'#eee2d3', 'rose-dark':'#8a6c50', cream:'#faf7f2', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#4c4136', mid:'#93826f', light:'#f2ece1', sage:'#a1b0a7', 'sage-dark':'#84968b' }
-  }
-};
-
-function aplicarTema(nomeTema) {
-  const t = TEMAS[nomeTema] || TEMAS.rose;
-  const root = document.documentElement.style;
-  Object.entries(t.vars).forEach(([k,v]) => root.setProperty('--'+k, v));
-}
-
-function renderSeletorTemas() {
-  const elementos = document.querySelectorAll('.lista-temas-target');
-  if (elementos.length === 0) return;
-  const f = FUNCIONARIOS.find(x => x.id === currentUser);
-  const temaAtual = (f && f.tema) || 'rose';
-  const html = Object.entries(TEMAS).map(([key, t]) => `
-    <div onclick="escolherTema('${key}')" style="cursor:pointer;text-align:center;padding:10px 6px;border-radius:12px;border:2px solid ${temaAtual===key ? 'var(--rose-dark)' : 'transparent'};background:${temaAtual===key ? 'var(--light)' : 'transparent'}">
-      <div style="width:38px;height:38px;border-radius:50%;background:${t.swatch};margin:0 auto 6px;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div>
-      <div style="font-size:0.75rem;font-weight:600;color:var(--dark)">${t.label}</div>
-      <div style="font-size:0.65rem;color:var(--mid)">${t.publico}</div>
-    </div>
-  `).join('');
-  elementos.forEach(el => el.innerHTML = html);
-}
-
-async function escolherTema(key) {
-  const f = FUNCIONARIOS.find(x => x.id === currentUser);
-  if (!f) return;
-  f.tema = key;
-  aplicarTema(key);
-  await salvarEquipeFirebase();
-  renderSeletorTemas();
-  showToast('✅ Tema aplicado só para o seu usuário!');
-}
 let syncInterval = null;
 
 // --- AGENDAMENTOS ---
@@ -704,7 +684,12 @@ async function loadFromFirebase() {
     const porId = {};
     novos.forEach(a => { porId[a.id] = a; });
     agendamentos = Object.values(porId);
-    if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento(); }
+    if (currentUser) {
+      renderWeek(); setTimeout(renderTimeline, 100); updateStats();
+      const focoAtual = document.activeElement && document.activeElement.id || '';
+      const digitandoVale = focoAtual.startsWith('vale-valor-');
+      if (document.getElementById('page-faturamento').classList.contains('active') && !digitandoVale) renderFaturamento();
+    }
   } catch(e) { console.log('Sync agendamentos error', e); }
 }
 
@@ -834,6 +819,8 @@ async function loadConfigFromFirebase() {
     const data = await res.json();
     if (data && typeof data === 'object') {
       configStudio = data;
+      atualizarHeaderNome();
+      aplicarTema(data.tema || 'rose');
       preencherConfig();
     }
   } catch(e) { console.log('Config load error', e); }
@@ -855,12 +842,16 @@ async function saveConfigFirebase(obj) {
 
 // --- SYNC ---
 function startSync() {
+  loadEquipeFirebase().then(() => { renderWeek(); renderTimeline(); renderListaEquipeConfig(); });
   loadFromFirebase();
   loadClientesFromFirebase();
   loadServicosFromFirebase();
   loadConfigFromFirebase();
   loadLancamentosAvulsos();
-  syncInterval = setInterval(() => { loadFromFirebase(); loadClientesFromFirebase(); }, 5000);
+  syncInterval = setInterval(() => {
+    if (window.valeEmEdicao) return;
+    loadFromFirebase(); loadClientesFromFirebase();
+  }, 5000);
 }
 
 // ═══════════════════════════════════════
@@ -887,9 +878,101 @@ async function testarFirebase() {
 // CONFIGURAÇÃO DO STUDIO
 const LOCALIZACAO_PADRAO = 'https://maps.app.goo.gl/CfMP1DPpUTyGAn2m6';
 
+// ═══════════════════════════════════════
+// TEMAS DE CORES (masculino / feminino / unissex)
+// ═══════════════════════════════════════
+const TEMAS = {
+  rose: {
+    label: 'Rosé Clássico', publico: 'Feminino',
+    swatch: '#c49a9e',
+    vars: { rose:'#d0b0b3', 'rose-light':'#f2e7e8', 'rose-dark':'#957175', cream:'#fbf9f7', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#4c4446', mid:'#918587', light:'#f6f1ee', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
+  },
+  lavanda: {
+    label: 'Lavanda', publico: 'Feminino',
+    swatch: '#a99bc0',
+    vars: { rose:'#bbb1cd', 'rose-light':'#ece6f2', 'rose-dark':'#7c6f93', cream:'#faf9fc', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#463f51', mid:'#8b8598', light:'#f3f1fa', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
+  },
+  sage: {
+    label: 'Verde Sálvia', publico: 'Unissex',
+    swatch: '#8aa693',
+    vars: { rose:'#a3b9aa', 'rose-light':'#e6eee8', 'rose-dark':'#6b8273', cream:'#f9faf9', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#3e4640', mid:'#869088', light:'#f2f5f2', sage:'#b7cfbe', 'sage-dark':'#96b0a0' }
+  },
+  grafite: {
+    label: 'Grafite', publico: 'Masculino',
+    swatch: '#6b7078',
+    vars: { rose:'#8b8f95', 'rose-light':'#e2e4e7', 'rose-dark':'#575c62', cream:'#f7f7f8', gold:'#c3b495', 'gold-light':'#eee7d7', dark:'#434649', mid:'#8a8d92', light:'#eeeef0', sage:'#9baca1', 'sage-dark':'#7b8d82' }
+  },
+  marinho: {
+    label: 'Azul Marinho', publico: 'Masculino',
+    swatch: '#546e82',
+    vars: { rose:'#798d9d', 'rose-light':'#e2e8ec', 'rose-dark':'#475767', cream:'#f7f9f9', gold:'#c7b591', 'gold-light':'#f0e8d6', dark:'#3e464d', mid:'#7b8891', light:'#eceff2', sage:'#9baca1', 'sage-dark':'#7b8d82' }
+  },
+  ambar: {
+    label: 'Âmbar', publico: 'Masculino',
+    swatch: '#a17d5c',
+    vars: { rose:'#b5997f', 'rose-light':'#eee3d4', 'rose-dark':'#7d6550', cream:'#faf8f3', gold:'#d4c4a7', 'gold-light':'#f3ecdd', dark:'#473e37', mid:'#918577', light:'#f3eee5', sage:'#9baca1', 'sage-dark':'#7b8d82' }
+  }
+};
+
+function aplicarTema(nomeTema) {
+  const t = TEMAS[nomeTema] || TEMAS.rose;
+  const root = document.documentElement.style;
+  Object.entries(t.vars).forEach(([k,v]) => root.setProperty('--'+k, v));
+}
+
+function renderSeletorTemas() {
+  const el = document.getElementById('lista-temas');
+  if (!el) return;
+  const temaAtual = getConfig('tema', 'rose');
+  el.innerHTML = Object.entries(TEMAS).map(([key, t]) => `
+    <div onclick="escolherTema('${key}')" style="cursor:pointer;text-align:center;padding:10px 6px;border-radius:12px;border:2px solid ${temaAtual===key ? 'var(--rose-dark)' : 'transparent'};background:${temaAtual===key ? 'var(--light)' : 'transparent'}">
+      <div style="width:38px;height:38px;border-radius:50%;background:${t.swatch};margin:0 auto 6px;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div>
+      <div style="font-size:0.75rem;font-weight:600;color:var(--dark)">${t.label}</div>
+      <div style="font-size:0.65rem;color:var(--mid)">${t.publico}</div>
+    </div>
+  `).join('');
+}
+
+async function escolherTema(key) {
+  Object.assign(configStudio, { tema: key });
+  aplicarTema(key);
+  await saveConfigFirebase({ tema: key });
+  renderSeletorTemas();
+  showToast('✅ Tema aplicado!');
+}
+
+
+
 function getConfig(campo, fallback) {
   return (configStudio && configStudio[campo]) ? configStudio[campo] : fallback;
 }
+
+function ajustarFonteAoEspaco(el, tamanhoMax = 34, tamanhoMin = 16) {
+  if (!el) return;
+  const alturaMaxima = tamanhoMax * 1.15 * 2.1; // permite até ~2 linhas antes de reduzir
+  let tamanho = tamanhoMax;
+  el.style.fontSize = tamanho + 'px';
+  // Reduz progressivamente até o texto caber em até 2 linhas
+  while (el.scrollHeight > (tamanho * 1.15 * 2.1) && tamanho > tamanhoMin) {
+    tamanho -= 1;
+    el.style.fontSize = tamanho + 'px';
+  }
+}
+
+function atualizarHeaderNome() {
+  const nome = getConfig('nome', 'Meu Studio');
+  const el = document.getElementById('header-nome-studio');
+  if (el) el.textContent = nome;
+  const elLogin = document.getElementById('login-nome-studio');
+  if (elLogin) {
+    elLogin.textContent = nome;
+    ajustarFonteAoEspaco(elLogin);
+  }
+}
+
+window.addEventListener('resize', () => {
+  ajustarFonteAoEspaco(document.getElementById('login-nome-studio'));
+});
 
 function preencherConfig() {
   const campos = ['nome','whatsapp','endereco','maps','instagram','pix'];
@@ -913,6 +996,7 @@ async function salvarConfig() {
   };
   Object.assign(configStudio, cfg);
   await saveConfigFirebase(cfg);
+  atualizarHeaderNome();
   showToast('✅ Configurações salvas!');
 }
 
@@ -935,7 +1019,7 @@ function buildMsg(template, a) {
   const svcs = (a.servicoIds||[a.servicoId]).map(id => SERVICOS.find(s=>s.id===id)).filter(Boolean).map(s=>s.nome).join(', ');
   const prof = FUNCIONARIOS.find(f=>f.id===a.profId);
   const maps = getConfig('maps', LOCALIZACAO_PADRAO);
-  const endereco = getConfig('endereco', 'Studio Elly Designer');
+  const endereco = getConfig('endereco', 'Seu Studio');
   return template
     .replace(/{nome}/g, a.nomeCliente || 'Cliente')
     .replace(/{servico}/g, svcs)
@@ -946,9 +1030,9 @@ function buildMsg(template, a) {
     .replace(/{maps}/g, maps);
 }
 
-const MSG_CONFIRMAR_PADRAO = `Olá, {nome}! 😊\nSeu agendamento está *confirmado* no *Studio Elly Designer*!\n\n📅 *{data}* às *{hora}*\n✨ *{servico}*\n💅 Profissional: *{profissional}*\n📍 {maps}\n\nTe esperamos! 💕`;
+const MSG_CONFIRMAR_PADRAO = `Olá, {nome}! 😊\nSeu agendamento está *confirmado* no *{studio}*!\n\n📅 *{data}* às *{hora}*\n✨ *{servico}*\n💅 Profissional: *{profissional}*\n📍 {maps}\n\nTe esperamos! 💕`;
 const MSG_LEMBRETE_PADRAO  = `Oi {nome}! 👋\n\n✨ *Lembrete do seu agendamento* ✨\n\n📅 *{data}* às *{hora}*\n💅 Serviço: *{servico}*\n👩 Profissional: *{profissional}*\n📍 {maps}\n\nPodemos confirmar sua presença? 😊\nQualquer dúvida é só chamar! 💬`;
-const MSG_REAGENDAR_PADRAO = `Olá, {nome}! 😊\nPrecisamos reagendar seu horário de *{servico}* marcado para *{data}* às *{hora}*.\n\nPor favor, entre em contato para escolhermos uma nova data! 📅\n\nStudio Elly Designer 💕`;
+const MSG_REAGENDAR_PADRAO = `Olá, {nome}! 😊\nPrecisamos reagendar seu horário de *{servico}* marcado para *{data}* às *{hora}*.\n\nPor favor, entre em contato para escolhermos uma nova data! 📅\n\n{studio} 💕`;
 
 function waLink(fone, msg) {
   const numero = fone.replace(/\D/g,'');
@@ -1013,6 +1097,31 @@ let fatMesOffset = 0;
 
 function moveMesFaturamento(delta) { fatMesOffset += delta; renderFaturamento(); }
 
+async function lancarVale(profId) {
+  const input = document.getElementById('vale-valor-' + profId);
+  const valor = parseFloat(input.value);
+  if (!valor || valor <= 0) { showToast('Digite um valor válido'); return; }
+  const f = FUNCIONARIOS.find(x => x.id === profId);
+  if (!f) return;
+  f.valeAcumulado = (f.valeAcumulado || 0) + valor;
+  f.valesHistorico = f.valesHistorico || [];
+  f.valesHistorico.push({ data: today(), valor, zerado: false });
+  await salvarEquipeFirebase();
+  renderFaturamento();
+  showToast('✅ Vale registrado!');
+}
+
+async function zerarVale(profId) {
+  const f = FUNCIONARIOS.find(x => x.id === profId);
+  if (!f) return;
+  if (!confirm(`Confirma que o acerto de ${f.nome} foi feito e o vale de ${formatarMoeda(f.valeAcumulado||0)} deve ser zerado?`)) return;
+  (f.valesHistorico || []).forEach(v => { if (!v.zerado) v.zerado = true; });
+  f.valeAcumulado = 0;
+  await salvarEquipeFirebase();
+  renderFaturamento();
+  showToast('✅ Acerto marcado, vale zerado!');
+}
+
 function renderFaturamento() {
   const base = new Date();
   base.setDate(1);
@@ -1034,6 +1143,15 @@ function renderFaturamento() {
     const partes = a.data.split('-');
     return parseInt(partes[0]) === ano && (parseInt(partes[1]) - 1) === mes && typeof a.valor === 'number' && a.valor > 0;
   }).sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
+
+  // Agendamentos do mês SEM valor preenchido (para aviso, não bloqueia nada)
+  const semValorDoMes = agendamentos.filter(a => {
+    if (a.status === 'cancelado') return false;
+    if (!a.data) return false;
+    const partes = a.data.split('-');
+    const doMesCerto = parseInt(partes[0]) === ano && (parseInt(partes[1]) - 1) === mes;
+    return doMesCerto && (typeof a.valor !== 'number' || a.valor <= 0);
+  });
 
   // Lançamentos avulsos do mês
   const avulsosDoMes = [];
@@ -1073,6 +1191,50 @@ function renderFaturamento() {
       <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--rose-dark)">${formatarMoeda(totalGeral)}</div>
       <div style="font-size:0.72rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px">Total do Mês</div>
     </div>`;
+
+  if (!ehDono) {
+    const pendentesDoUsuario = semValorDoMes.filter(a => a.profId === currentUser);
+    if (pendentesDoUsuario.length > 0) {
+      html += `<div class="card" style="margin-bottom:14px;border:2px solid #e0a030;background:#fff9ed">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:1.3rem">⚠️</span>
+          <div>
+            <strong style="font-size:0.9rem">${pendentesDoUsuario.length} agendamento${pendentesDoUsuario.length!==1?'s':''} sem valor preenchido</strong>
+            <div style="font-size:0.78rem;color:var(--mid);margin-top:2px">Sem o valor, esse atendimento não entra no cálculo da sua comissão. Preencha na agenda.</div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    let brutoSemQuimica = 0, brutoComQuimica = 0;
+    listaAgend.forEach(a => {
+      const temQuimica = (a.servicoIds||[]).some(sid => {
+        const s = SERVICOS.find(x => x.id === sid);
+        return s && servicoTemQuimica(s.nome);
+      });
+      if (temQuimica) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
+    });
+    const comissaoSemQuimica = brutoSemQuimica * 0.50;
+    const comissaoComQuimica = brutoComQuimica * 0.45;
+    const comissaoTotal = comissaoSemQuimica + comissaoComQuimica;
+    const prof = FUNCIONARIOS.find(f => f.id === currentUser);
+    const valeAcumulado = (prof && prof.valeAcumulado) || 0;
+    const valorFinal = comissaoTotal - valeAcumulado;
+
+    html += `<div class="card" style="margin-bottom:14px;border:2px solid var(--rose-light)">
+      <div class="card-title">🧾 Sua Comissão — ${mesLabel}</div>
+      <div style="font-size:0.85rem;line-height:1.9">
+        <div style="display:flex;justify-content:space-between"><span>Serviços sem química (${formatarMoeda(brutoSemQuimica)} × 50%)</span><strong>${formatarMoeda(comissaoSemQuimica)}</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>Serviços com química (${formatarMoeda(brutoComQuimica)} × 45%)</span><strong>${formatarMoeda(comissaoComQuimica)}</strong></div>
+        <div style="border-top:1px solid var(--rose-light);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between"><span>Total de comissão</span><strong>${formatarMoeda(comissaoTotal)}</strong></div>
+        ${valeAcumulado>0?`<div style="display:flex;justify-content:space-between;color:#c0392b"><span>Desconto de vale/adiantamento</span><strong>-${formatarMoeda(valeAcumulado)}</strong></div>`:''}
+        <div style="border-top:2px solid var(--rose-dark);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between;font-size:1rem;color:var(--rose-dark)"><span><strong>Valor a receber</strong></span><strong>${formatarMoeda(valorFinal)}</strong></div>
+      </div>
+    </div>`;
+  }
+
   if (ehDono) {
     FUNCIONARIOS.forEach(f => {
       const d = porProf[f.id];
@@ -1083,6 +1245,32 @@ function renderFaturamento() {
     });
   }
   html += `</div>`;
+
+  if (ehDono) {
+    html += `<div class="card" style="margin-bottom:14px">
+      <div class="card-title">💵 Vales e Adiantamentos</div>
+      <div style="font-size:0.78rem;color:var(--mid);margin-bottom:10px">Só você vê e gerencia esta área. O profissional vê apenas o desconto final no próprio resumo.</div>`;
+    FUNCIONARIOS.filter(f => f.id !== 1).forEach(f => {
+      const acumulado = f.valeAcumulado || 0;
+      const historico = f.valesHistorico || [];
+      html += `<div style="border:1px solid var(--rose-light);border-radius:10px;padding:10px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>${f.emoji} ${f.nome}</strong>
+          <span style="color:${acumulado>0?'#c0392b':'var(--mid)'};font-weight:700">${formatarMoeda(acumulado)} pendente</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <input type="number" inputmode="decimal" id="vale-valor-${f.id}" placeholder="Valor do vale" onfocus="window.valeEmEdicao=true" onblur="window.valeEmEdicao=false" style="flex:1;padding:6px 10px;border:1px solid var(--rose-light);border-radius:8px;font-size:0.85rem">
+          <button class="btn btn-ghost btn-sm" onclick="lancarVale(${f.id})">+ Lançar</button>
+        </div>
+        ${acumulado>0?`<button class="btn btn-danger btn-sm" style="width:100%;margin-top:6px" onclick="zerarVale(${f.id})">✅ Marcar acerto como feito (zerar)</button>`:''}
+        ${historico.length>0?`<div style="margin-top:8px;font-size:0.75rem;color:var(--mid)">
+          <div style="font-weight:600;margin-bottom:2px">Histórico:</div>
+          ${historico.slice(-5).reverse().map(v => `<div>${formatDate(v.data)} — ${formatarMoeda(v.valor)}${v.zerado?' (já acertado)':''}</div>`).join('')}
+        </div>`:''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
 
   if (ehDono) {
     // Abas por profissional para o dono
@@ -1164,11 +1352,7 @@ function renderFaturamento() {
     </div></div>`;
   }
 
-  if (ehDono) {
-    html += `<button onclick="enviarRelatorio()" style="width:100%;padding:12px;background:var(--rose-dark);color:#fff;border:none;border-radius:12px;font-size:0.9rem;font-weight:600;cursor:pointer;margin-bottom:14px">
-      📧 Enviar Relatório por E-mail
-    </button>`;
-  }
+
   window._fatLista = lista;
   cont.innerHTML = html;
 }
@@ -1209,6 +1393,175 @@ function fatSelecionarProf(profId) {
     html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:4px"><strong>Total</strong><strong style="color:var(--rose-dark);font-size:1.05rem">' + formatarMoeda(totalProf) + '</strong></div>';
   }
   detalhe.innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+// GERENCIAR EQUIPE
+// ═══════════════════════════════════════
+let profEmojiSelecionado = '👑';
+let senhasProfissionais = {}; // { profId: senha }
+
+function selecionarEmoji(e) {
+  profEmojiSelecionado = e;
+  document.getElementById('prof-emoji').value = e;
+}
+
+function atualizarAvatarHeader() {
+  const f = FUNCIONARIOS.find(x => x.id === currentUser);
+  const el = document.getElementById('user-avatar');
+  if (!f || !el) return;
+  if (f.foto) {
+    el.innerHTML = `<img src="${f.foto}" style="width:100%;height:100%;object-fit:cover">`;
+  } else {
+    el.innerHTML = f.emoji || '👤';
+  }
+}
+
+function abrirTrocaFoto() {
+  document.getElementById('input-foto-perfil').click();
+}
+
+function processarFotoSelecionada(event) {
+  const arquivo = event.target.files[0];
+  if (!arquivo) return;
+  if (!arquivo.type.startsWith('image/')) { showToast('Selecione um arquivo de imagem'); return; }
+
+  const leitor = new FileReader();
+  leitor.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const tamanho = 150;
+      const canvas = document.createElement('canvas');
+      canvas.width = tamanho; canvas.height = tamanho;
+      const ctx = canvas.getContext('2d');
+      const lado = Math.min(img.width, img.height);
+      const offX = (img.width - lado) / 2;
+      const offY = (img.height - lado) / 2;
+      ctx.drawImage(img, offX, offY, lado, lado, 0, 0, tamanho, tamanho);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      salvarFotoPerfil(dataUrl);
+    };
+    img.src = e.target.result;
+  };
+  leitor.readAsDataURL(arquivo);
+  event.target.value = '';
+}
+
+async function salvarFotoPerfil(dataUrl) {
+  const f = FUNCIONARIOS.find(x => x.id === currentUser);
+  if (!f) return;
+  f.foto = dataUrl;
+  await salvarEquipeFirebase();
+  atualizarAvatarHeader();
+  showToast('✅ Foto atualizada!');
+}
+
+function abrirModalNovoProf() {
+  if (FUNCIONARIOS.length >= 5) { alert('Limite de 5 profissionais atingido.'); return; }
+  document.getElementById('modal-prof-titulo').textContent = 'Novo Profissional';
+  document.getElementById('prof-nome').value = '';
+  document.getElementById('prof-role').value = '';
+  document.getElementById('prof-emoji').value = '';
+  document.getElementById('prof-senha').value = '';
+  document.getElementById('prof-id-edit').value = '';
+  profEmojiSelecionado = '🌸';
+  openModal('modal-prof');
+}
+
+function abrirModalEditarProf(id) {
+  const f = FUNCIONARIOS.find(x => x.id === id);
+  if (!f) return;
+  document.getElementById('modal-prof-titulo').textContent = 'Editar Profissional';
+  document.getElementById('prof-nome').value = f.nome;
+  document.getElementById('prof-role').value = f.role || '';
+  document.getElementById('prof-emoji').value = f.emoji;
+  document.getElementById('prof-senha').value = senhasProfissionais[id] || '';
+  document.getElementById('prof-id-edit').value = id;
+  profEmojiSelecionado = f.emoji;
+  openModal('modal-prof');
+}
+
+async function salvarProfissional() {
+  const nome = document.getElementById('prof-nome').value.trim();
+  const role = document.getElementById('prof-role').value.trim();
+  const emoji = document.getElementById('prof-emoji').value.trim() || profEmojiSelecionado;
+  const senha = document.getElementById('prof-senha').value.trim();
+  const idEdit = parseInt(document.getElementById('prof-id-edit').value);
+
+  if (!nome) { alert('Informe o nome.'); return; }
+  if (!senha) { alert('Informe a senha.'); return; }
+
+  const cores = ['av-rose','av-gold','av-green','av-blue','av-purple'];
+
+  if (idEdit) {
+    // Editar existente
+    const f = FUNCIONARIOS.find(x => x.id === idEdit);
+    if (f) { f.nome = nome; f.role = role; f.emoji = emoji; }
+    senhasProfissionais[idEdit] = senha;
+  } else {
+    // Novo
+    const novoId = Math.max(...FUNCIONARIOS.map(f => f.id), 0) + 1;
+    const cor = cores[(novoId - 1) % cores.length];
+    FUNCIONARIOS.push({ id: novoId, nome, cor, emoji, role });
+    senhasProfissionais[novoId] = senha;
+  }
+
+  await salvarEquipeFirebase();
+  closeModal('modal-prof');
+  renderListaEquipeConfig();
+  renderWeek();
+  renderTimeline();
+}
+
+async function removerProfissional(id) {
+  if (id === 1) { alert('O administrador não pode ser removido.'); return; }
+  if (!confirm('Remover este profissional?')) return;
+  FUNCIONARIOS = FUNCIONARIOS.filter(f => f.id !== id);
+  delete senhasProfissionais[id];
+  await salvarEquipeFirebase();
+  renderListaEquipeConfig();
+  renderWeek();
+  renderTimeline();
+}
+
+async function salvarEquipeFirebase() {
+  try {
+    await fetch(DB_URL + '/equipe.json', {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ funcionarios: FUNCIONARIOS, senhas: senhasProfissionais })
+    });
+  } catch(e) { console.error('Erro ao salvar equipe', e); }
+}
+
+async function loadEquipeFirebase() {
+  try {
+    const res = await fetch(DB_URL + '/equipe.json');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.funcionarios && data.funcionarios.length > 0) {
+      FUNCIONARIOS = data.funcionarios;
+      senhasProfissionais = data.senhas || {};
+    }
+  } catch(e) { console.log('Erro ao carregar equipe', e); }
+}
+
+function renderListaEquipeConfig() {
+  const el = document.getElementById('lista-equipe-config');
+  if (!el) return;
+  el.innerHTML = FUNCIONARIOS.map(f => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--light)">
+      <div>
+        <span style="font-weight:600">${f.emoji} ${f.nome}</span>
+        ${f.id === 1 ? '<span style="font-size:0.7rem;color:var(--rose-dark);margin-left:6px">Admin</span>' : ''}
+        <div style="font-size:0.75rem;color:var(--mid)">${f.role||''}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="abrirModalEditarProf(${f.id})">✏️</button>
+        ${f.id !== 1 ? `<button class="btn btn-ghost btn-sm" style="color:#e74c3c" onclick="removerProfissional(${f.id})">🗑️</button>` : ''}
+      </div>
+    </div>
+  `).join('');
 }
 
 // ═══════════════════════════════════════
@@ -1288,7 +1641,7 @@ function enviarRelatorio() {
 // ═══════════════════════════════════════
 // LOGIN / AUTH
 // ═══════════════════════════════════════
-const SENHA_PADRAO = 'Nego197353@';
+const SENHA_PADRAO = '1234'; // Troque após o primeiro acesso
 let senhaElly = null;
 let currentUser = null;
 let selectedDate = today();
@@ -1309,13 +1662,19 @@ async function carregarSenhaElly() {
 }
 
 function initLogin() {
-  document.getElementById('prof-grid').innerHTML = FUNCIONARIOS.map(f => `
+  renderProfGrid();
+  carregarSenhaElly();
+}
+
+function renderProfGrid() {
+  const grid = document.getElementById('prof-grid');
+  if (!grid) return;
+  grid.innerHTML = FUNCIONARIOS.map(f => `
     <div class="prof-option" id="po-${f.id}" onclick="selectProf(${f.id})">
       <div class="avatar ${f.cor}" style="width:40px;height:40px;font-size:1rem">${f.emoji}</div>
       <div><div class="po-name">${f.nome}</div><div class="po-role">${f.role}</div></div>
     </div>
   `).join('');
-  carregarSenhaElly();
 }
 
 function selectProf(id) {
@@ -1336,13 +1695,25 @@ function doLogin() {
     openModal('modal-senha');
     return;
   }
+  // Outros profissionais também precisam de senha se tiverem uma cadastrada
+  if (currentUser !== 1 && senhasProfissionais[currentUser]) {
+    document.getElementById('senha-input').value = '';
+    openModal('modal-senha');
+    return;
+  }
   finalizarLogin();
 }
 
 function confirmarSenha() {
   const digitada = document.getElementById('senha-input').value;
-  if (digitada !== (senhaElly || SENHA_PADRAO)) { showToast('Senha incorreta'); return; }
-  localStorage.setItem('elly_auth_dia', today());
+  // Admin
+  if (currentUser === 1) {
+    if (digitada !== (senhaElly || SENHA_PADRAO)) { showToast('Senha incorreta'); return; }
+    localStorage.setItem('elly_auth_dia', today());
+  } else {
+    // Outros profissionais
+    if (digitada !== senhasProfissionais[currentUser]) { showToast('Senha incorreta'); return; }
+  }
   closeModal('modal-senha');
   finalizarLogin();
 }
@@ -1353,85 +1724,13 @@ function cancelarSenha() {
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
 
-async function loadFotosEquipe() {
-  try {
-    const res = await fetch(DB_URL + '/equipe_fotos.json');
-    const data = await res.json();
-    if (data) {
-      FUNCIONARIOS.forEach(f => { if (data[f.id]) f.foto = data[f.id]; });
-    }
-  } catch(e) { console.log('Erro ao carregar fotos da equipe', e); }
-}
-
-function atualizarAvatarHeader() {
-  const f = FUNCIONARIOS.find(x => x.id === currentUser);
-  const el = document.getElementById('user-avatar');
-  if (!f || !el) return;
-  if (f.foto) {
-    el.innerHTML = `<img src="${f.foto}" style="width:100%;height:100%;object-fit:cover">`;
-  } else {
-    el.innerHTML = f.emoji || '👤';
-  }
-}
-
-function abrirTrocaFoto() {
-  document.getElementById('input-foto-perfil').click();
-}
-
-function processarFotoSelecionada(event) {
-  const arquivo = event.target.files[0];
-  if (!arquivo) return;
-  if (!arquivo.type.startsWith('image/')) { showToast('Selecione um arquivo de imagem'); return; }
-
-  const leitor = new FileReader();
-  leitor.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      const tamanho = 150;
-      const canvas = document.createElement('canvas');
-      canvas.width = tamanho; canvas.height = tamanho;
-      const ctx = canvas.getContext('2d');
-      const lado = Math.min(img.width, img.height);
-      const offX = (img.width - lado) / 2;
-      const offY = (img.height - lado) / 2;
-      ctx.drawImage(img, offX, offY, lado, lado, 0, 0, tamanho, tamanho);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
-      salvarFotoPerfil(dataUrl);
-    };
-    img.src = e.target.result;
-  };
-  leitor.readAsDataURL(arquivo);
-  event.target.value = '';
-}
-
-async function salvarFotoPerfil(dataUrl) {
-  const f = FUNCIONARIOS.find(x => x.id === currentUser);
-  if (!f) return;
-  try {
-    const res = await fetch(DB_URL + '/equipe_fotos/' + currentUser + '.json', {
-      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(dataUrl)
-    });
-    if (!res.ok) { showToast('⚠️ Erro ao salvar foto (Firebase: ' + res.status + ')'); return; }
-    f.foto = dataUrl;
-    atualizarAvatarHeader();
-    showToast('✅ Foto atualizada!');
-  } catch(e) {
-    console.error('salvarFotoPerfil error', e);
-    showToast('❌ Sem conexão com o banco.');
-  }
-}
-
 function finalizarLogin() {
   document.getElementById('login-page').style.display = 'none';
   const f = FUNCIONARIOS.find(x => x.id === currentUser);
   document.getElementById('user-label').textContent = f.nome;
   atualizarAvatarHeader();
-  aplicarTema(f.tema || 'rose');
   document.getElementById('sync-dot').style.display = 'block';
-  if (currentUser === 1) {
-    document.getElementById('nav-config').style.display = 'flex';
-    document.getElementById('nav-temas').style.display = 'none';
-  }
+  if (currentUser === 1) document.getElementById('nav-config').style.display = 'flex';
   initApp();
   startSync();
 }
@@ -1441,7 +1740,6 @@ function logout() {
   document.getElementById('login-page').style.display = 'flex';
   document.getElementById('sync-dot').style.display = 'none';
   document.getElementById('nav-config').style.display = 'none';
-  document.getElementById('nav-temas').style.display = 'flex';
   currentUser = null;
   document.querySelectorAll('.prof-option').forEach(el => el.classList.remove('selected'));
 }
@@ -1507,13 +1805,34 @@ function moveWeek(dir) { weekOffset += dir; renderWeek(); renderTimeline(); }
 // ═══════════════════════════════════════
 // AGENDA — TIMELINE
 // ═══════════════════════════════════════
+function gerarSigla(nome, siglasUsadas) {
+  const palavras = nome.trim().split(/\s+/).filter(Boolean);
+  let base;
+  if (palavras.length >= 2) {
+    base = palavras.slice(0, 3).map(p => p[0].toUpperCase()).join('');
+  } else {
+    base = nome.trim().slice(0, 3).toUpperCase();
+  }
+  let sigla = base;
+  let contador = 2;
+  while (siglasUsadas.has(sigla)) {
+    sigla = base + contador;
+    contador++;
+  }
+  siglasUsadas.add(sigla);
+  return sigla;
+}
+
 function renderProfTabs() {
   const el = document.getElementById('prof-tab-wrap');
   if (!el) return;
-  const colors = ['pt-rose','pt-gold','pt-green'];
-  el.innerHTML = FUNCIONARIOS.map((f, i) =>
-    `<div class="prof-tab ${colors[i]} ${f.id===activeProfId?'active':''}" onclick="trocarProf(${f.id})">${f.nome}</div>`
-  ).join('');
+  const colors = ['pt-rose','pt-gold','pt-green','pt-blue','pt-purple'];
+  const siglasUsadas = new Set();
+  el.style.gridTemplateColumns = `repeat(${FUNCIONARIOS.length || 1}, 1fr)`;
+  el.innerHTML = FUNCIONARIOS.map((f, i) => {
+    const sigla = gerarSigla(f.nome, siglasUsadas);
+    return `<div class="prof-tab ${colors[i % colors.length]} ${f.id===activeProfId?'active':''}" onclick="trocarProf(${f.id})" title="${f.nome}">${sigla}</div>`;
+  }).join('');
 }
 
 function trocarProf(id) { activeProfId = id; renderTimeline(); }
@@ -1574,14 +1893,15 @@ function renderTimeline() {
     } else {
       const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
       const lancAtual = (lancamentosAvulsos[lancKey] !== undefined && lancamentosAvulsos[lancKey] > 0) ? lancamentosAvulsos[lancKey] : '';
+      const ehAdminAvulso = currentUser === 1;
       rows += `<td class="slot-td" style="display:flex;align-items:center;justify-content:space-between;padding:4px 10px">
         <span style="font-size:0.8rem;color:var(--mid);opacity:0.4;cursor:pointer" onclick="abrirSlot('${slot}')">+</span>
-        <div class="slot-valor-wrap" onclick="event.stopPropagation()">
+        ${ehAdminAvulso ? `<div class="slot-valor-wrap" onclick="event.stopPropagation()">
           <span class="slot-valor-prefix">R$</span>
           <input type="number" inputmode="decimal" class="slot-valor-input" placeholder="0" value="${lancAtual}"
             onclick="event.stopPropagation()"
             onchange="salvarLancamentoAvulso('${lancKey}','${slot}',this.value)">
-        </div>
+        </div>` : ''}
       </td>`;
     }
     rows += '</tr>';
@@ -1739,6 +2059,8 @@ function normalizarTexto(t) {
   return (t||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
 
+// Resolve o cadastro do cliente ao salvar um agendamento com nome digitado livremente.
+// Retorna: { clienteId, precisaConfirmar, clienteConflito } — se precisaConfirmar=true, pausa o fluxo e pergunta ao usuário.
 function resolverClienteAutomatico(nomeCliente, fone) {
   const nomeNorm = normalizarTexto(nomeCliente);
   const foneNorm = (fone||'').replace(/\D/g,'');
@@ -1746,9 +2068,11 @@ function resolverClienteAutomatico(nomeCliente, fone) {
   const matchExato = clientes.find(c => normalizarTexto(c.nome) === nomeNorm && (c.fone||'').replace(/\D/g,'') === foneNorm && foneNorm !== '');
   if (matchExato) return { clienteId: matchExato.id, precisaConfirmar: false };
 
+  // Nome bate, telefone diferente → pergunta (pode ser erro de digitação do telefone)
   const matchNome = clientes.find(c => normalizarTexto(c.nome) === nomeNorm && (c.fone||'').replace(/\D/g,'') !== foneNorm);
-  if (matchNome) return { precisaConfirmar: true, clienteConflito: matchNome };
+  if (matchNome) return { precisaConfirmar: true, clienteConflito: matchNome, tipoConflito: 'nome' };
 
+  // Telefone bate, nome diferente → bloqueia (telefone é único, não pode haver 2 clientes com o mesmo)
   const matchFone = foneNorm !== '' && clientes.find(c => (c.fone||'').replace(/\D/g,'') === foneNorm && normalizarTexto(c.nome) !== nomeNorm);
   if (matchFone) return { bloqueado: true, clienteConflito: matchFone };
 
@@ -1774,6 +2098,7 @@ function salvarAgendamento() {
     showToast('Preencha todos os campos obrigatórios'); return;
   }
 
+  // Se o nome não veio do dropdown (cliente digitada livremente), resolve/cria o cadastro automaticamente
   if (!clienteId) {
     if (!fone) {
       showToast('Telefone é obrigatório para cadastrar um novo cliente'); return;
@@ -1995,13 +2320,13 @@ function editarProfissional(id) {
       </div>
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-editar-prof')">Cancelar</button>
-        <button class="btn btn-primary" style="flex:1" onclick="salvarProfissional(${id})">Salvar</button>
+        <button class="btn btn-primary" style="flex:1" onclick="salvarEdicaoProfissional(${id})">Salvar</button>
       </div>
     </div>`;
   openModal('modal-editar-prof');
 }
 
-function salvarProfissional(id) {
+function salvarEdicaoProfissional(id) {
   const prof = FUNCIONARIOS.find(f => f.id === id);
   if (!prof) return;
   const novoNome = document.getElementById('ep-nome').value.trim();
@@ -2271,8 +2596,7 @@ function showPage(id, btn) {
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
   if (id==='servicos') { renderServicos(); document.getElementById('btn-novo-servico').style.display = (currentUser===1 ? 'inline-flex' : 'none'); }
   if (id==='faturamento') { fatMesOffset = 0; if (agendamentos.length > 0) { renderFaturamento(); } else { loadFromFirebase().then(() => renderFaturamento()); } }
-  if (id==='config') { testarFirebase(); renderSeletorTemas(); }
-  if (id==='temas') { renderSeletorTemas(); }
+  if (id==='config') { testarFirebase(); document.getElementById('card-gerenciar-equipe').style.display=(currentUser===1?'block':'none'); renderListaEquipeConfig(); renderSeletorTemas(); }
 }
 
 function openModal(id) {
@@ -2331,7 +2655,8 @@ document.querySelectorAll('.modal-bg').forEach(bg => {
 // ═══════════════════════════════════════
 // START
 // ═══════════════════════════════════════
-loadFotosEquipe().then(() => initLogin());
+loadEquipeFirebase().then(() => { initLogin(); });
+loadConfigFromFirebase();
 </script>
 </body>
 </html>
