@@ -622,6 +622,28 @@ const SERVICOS_PADRAO = [
 let SERVICOS = [...SERVICOS_PADRAO];
 
 // ═══════════════════════════════════════
+// SISTEMA DE COMISSÃO
+// ═══════════════════════════════════════
+// Nomes de referência de serviços que contêm química (usados para detectar
+// automaticamente, por aproximação de nome, se um serviço do catálogo é "com química")
+const SERVICOS_QUIMICA_REF = [
+  'hidratacao profunda','spa capilar','nutricao capilar','reconstrucao capilar',
+  'luzes','mechas','balayage','morena iluminada','ombre hair','descoloracao',
+  'wella','matizacao','tonalizante','selagem','progressiva','botox capilar',
+  'cauterizacao','relaxamento','alisamento','permanente','cachos quimicos',
+  'micropigmentacao','coloracao','tintura','retoque de raiz'
+];
+
+function servicoTemQuimica(nomeServico) {
+  const n = normalizarTexto(nomeServico);
+  return SERVICOS_QUIMICA_REF.some(ref => n.includes(ref));
+}
+
+function percentualComissao(nomeServico) {
+  return servicoTemQuimica(nomeServico) ? 0.45 : 0.50;
+}
+
+// ═══════════════════════════════════════
 // FIREBASE
 // ═══════════════════════════════════════
 const DB_URL = 'https://studio-agenda-pro-teste-default-rtdb.firebaseio.com';
@@ -1067,6 +1089,31 @@ let fatMesOffset = 0;
 
 function moveMesFaturamento(delta) { fatMesOffset += delta; renderFaturamento(); }
 
+async function lancarVale(profId) {
+  const input = document.getElementById('vale-valor-' + profId);
+  const valor = parseFloat(input.value);
+  if (!valor || valor <= 0) { showToast('Digite um valor válido'); return; }
+  const f = FUNCIONARIOS.find(x => x.id === profId);
+  if (!f) return;
+  f.valeAcumulado = (f.valeAcumulado || 0) + valor;
+  f.valesHistorico = f.valesHistorico || [];
+  f.valesHistorico.push({ data: today(), valor, zerado: false });
+  await salvarEquipeFirebase();
+  renderFaturamento();
+  showToast('✅ Vale registrado!');
+}
+
+async function zerarVale(profId) {
+  const f = FUNCIONARIOS.find(x => x.id === profId);
+  if (!f) return;
+  if (!confirm(`Confirma que o acerto de ${f.nome} foi feito e o vale de ${formatarMoeda(f.valeAcumulado||0)} deve ser zerado?`)) return;
+  (f.valesHistorico || []).forEach(v => { if (!v.zerado) v.zerado = true; });
+  f.valeAcumulado = 0;
+  await salvarEquipeFirebase();
+  renderFaturamento();
+  showToast('✅ Acerto marcado, vale zerado!');
+}
+
 function renderFaturamento() {
   const base = new Date();
   base.setDate(1);
@@ -1088,6 +1135,15 @@ function renderFaturamento() {
     const partes = a.data.split('-');
     return parseInt(partes[0]) === ano && (parseInt(partes[1]) - 1) === mes && typeof a.valor === 'number' && a.valor > 0;
   }).sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
+
+  // Agendamentos do mês SEM valor preenchido (para aviso, não bloqueia nada)
+  const semValorDoMes = agendamentos.filter(a => {
+    if (a.status === 'cancelado') return false;
+    if (!a.data) return false;
+    const partes = a.data.split('-');
+    const doMesCerto = parseInt(partes[0]) === ano && (parseInt(partes[1]) - 1) === mes;
+    return doMesCerto && (typeof a.valor !== 'number' || a.valor <= 0);
+  });
 
   // Lançamentos avulsos do mês
   const avulsosDoMes = [];
@@ -1127,6 +1183,50 @@ function renderFaturamento() {
       <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--rose-dark)">${formatarMoeda(totalGeral)}</div>
       <div style="font-size:0.72rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px">Total do Mês</div>
     </div>`;
+
+  if (!ehDono) {
+    const pendentesDoUsuario = semValorDoMes.filter(a => a.profId === currentUser);
+    if (pendentesDoUsuario.length > 0) {
+      html += `<div class="card" style="margin-bottom:14px;border:2px solid #e0a030;background:#fff9ed">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:1.3rem">⚠️</span>
+          <div>
+            <strong style="font-size:0.9rem">${pendentesDoUsuario.length} agendamento${pendentesDoUsuario.length!==1?'s':''} sem valor preenchido</strong>
+            <div style="font-size:0.78rem;color:var(--mid);margin-top:2px">Sem o valor, esse atendimento não entra no cálculo da sua comissão. Preencha na agenda.</div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    let brutoSemQuimica = 0, brutoComQuimica = 0;
+    listaAgend.forEach(a => {
+      const temQuimica = (a.servicoIds||[]).some(sid => {
+        const s = SERVICOS.find(x => x.id === sid);
+        return s && servicoTemQuimica(s.nome);
+      });
+      if (temQuimica) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
+    });
+    const comissaoSemQuimica = brutoSemQuimica * 0.50;
+    const comissaoComQuimica = brutoComQuimica * 0.45;
+    const comissaoTotal = comissaoSemQuimica + comissaoComQuimica;
+    const prof = FUNCIONARIOS.find(f => f.id === currentUser);
+    const valeAcumulado = (prof && prof.valeAcumulado) || 0;
+    const valorFinal = comissaoTotal - valeAcumulado;
+
+    html += `<div class="card" style="margin-bottom:14px;border:2px solid var(--rose-light)">
+      <div class="card-title">🧾 Sua Comissão — ${mesLabel}</div>
+      <div style="font-size:0.85rem;line-height:1.9">
+        <div style="display:flex;justify-content:space-between"><span>Serviços sem química (${formatarMoeda(brutoSemQuimica)} × 50%)</span><strong>${formatarMoeda(comissaoSemQuimica)}</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>Serviços com química (${formatarMoeda(brutoComQuimica)} × 45%)</span><strong>${formatarMoeda(comissaoComQuimica)}</strong></div>
+        <div style="border-top:1px solid var(--rose-light);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between"><span>Total de comissão</span><strong>${formatarMoeda(comissaoTotal)}</strong></div>
+        ${valeAcumulado>0?`<div style="display:flex;justify-content:space-between;color:#c0392b"><span>Desconto de vale/adiantamento</span><strong>-${formatarMoeda(valeAcumulado)}</strong></div>`:''}
+        <div style="border-top:2px solid var(--rose-dark);margin:6px 0"></div>
+        <div style="display:flex;justify-content:space-between;font-size:1rem;color:var(--rose-dark)"><span><strong>Valor a receber</strong></span><strong>${formatarMoeda(valorFinal)}</strong></div>
+      </div>
+    </div>`;
+  }
+
   if (ehDono) {
     FUNCIONARIOS.forEach(f => {
       const d = porProf[f.id];
@@ -1137,6 +1237,32 @@ function renderFaturamento() {
     });
   }
   html += `</div>`;
+
+  if (ehDono) {
+    html += `<div class="card" style="margin-bottom:14px">
+      <div class="card-title">💵 Vales e Adiantamentos</div>
+      <div style="font-size:0.78rem;color:var(--mid);margin-bottom:10px">Só você vê e gerencia esta área. O profissional vê apenas o desconto final no próprio resumo.</div>`;
+    FUNCIONARIOS.filter(f => f.id !== 1).forEach(f => {
+      const acumulado = f.valeAcumulado || 0;
+      const historico = f.valesHistorico || [];
+      html += `<div style="border:1px solid var(--rose-light);border-radius:10px;padding:10px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>${f.emoji} ${f.nome}</strong>
+          <span style="color:${acumulado>0?'#c0392b':'var(--mid)'};font-weight:700">${formatarMoeda(acumulado)} pendente</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <input type="number" id="vale-valor-${f.id}" placeholder="Valor do vale" style="flex:1;padding:6px 10px;border:1px solid var(--rose-light);border-radius:8px;font-size:0.85rem">
+          <button class="btn btn-ghost btn-sm" onclick="lancarVale(${f.id})">+ Lançar</button>
+        </div>
+        ${acumulado>0?`<button class="btn btn-danger btn-sm" style="width:100%;margin-top:6px" onclick="zerarVale(${f.id})">✅ Marcar acerto como feito (zerar)</button>`:''}
+        ${historico.length>0?`<div style="margin-top:8px;font-size:0.75rem;color:var(--mid)">
+          <div style="font-weight:600;margin-bottom:2px">Histórico:</div>
+          ${historico.slice(-5).reverse().map(v => `<div>${formatDate(v.data)} — ${formatarMoeda(v.valor)}${v.zerado?' (já acertado)':''}</div>`).join('')}
+        </div>`:''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
 
   if (ehDono) {
     // Abas por profissional para o dono
@@ -1759,14 +1885,15 @@ function renderTimeline() {
     } else {
       const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
       const lancAtual = (lancamentosAvulsos[lancKey] !== undefined && lancamentosAvulsos[lancKey] > 0) ? lancamentosAvulsos[lancKey] : '';
+      const ehAdminAvulso = currentUser === 1;
       rows += `<td class="slot-td" style="display:flex;align-items:center;justify-content:space-between;padding:4px 10px">
         <span style="font-size:0.8rem;color:var(--mid);opacity:0.4;cursor:pointer" onclick="abrirSlot('${slot}')">+</span>
-        <div class="slot-valor-wrap" onclick="event.stopPropagation()">
+        ${ehAdminAvulso ? `<div class="slot-valor-wrap" onclick="event.stopPropagation()">
           <span class="slot-valor-prefix">R$</span>
           <input type="number" inputmode="decimal" class="slot-valor-input" placeholder="0" value="${lancAtual}"
             onclick="event.stopPropagation()"
             onchange="salvarLancamentoAvulso('${lancKey}','${slot}',this.value)">
-        </div>
+        </div>` : ''}
       </td>`;
     }
     rows += '</tr>';
