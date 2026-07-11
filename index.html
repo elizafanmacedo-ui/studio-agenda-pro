@@ -848,7 +848,10 @@ function startSync() {
   loadServicosFromFirebase();
   loadConfigFromFirebase();
   loadLancamentosAvulsos();
-  syncInterval = setInterval(() => { loadFromFirebase(); loadClientesFromFirebase(); }, 5000);
+  syncInterval = setInterval(() => {
+    if (window.valeEmEdicao) return;
+    loadFromFirebase(); loadClientesFromFirebase();
+  }, 5000);
 }
 
 // ═══════════════════════════════════════
@@ -1256,7 +1259,7 @@ function renderFaturamento() {
           <span style="color:${acumulado>0?'#c0392b':'var(--mid)'};font-weight:700">${formatarMoeda(acumulado)} pendente</span>
         </div>
         <div style="display:flex;gap:6px;margin-top:8px">
-          <input type="number" id="vale-valor-${f.id}" placeholder="Valor do vale" style="flex:1;padding:6px 10px;border:1px solid var(--rose-light);border-radius:8px;font-size:0.85rem">
+          <input type="number" inputmode="decimal" id="vale-valor-${f.id}" placeholder="Valor do vale" onfocus="window.valeEmEdicao=true" onblur="window.valeEmEdicao=false" style="flex:1;padding:6px 10px;border:1px solid var(--rose-light);border-radius:8px;font-size:0.85rem">
           <button class="btn btn-ghost btn-sm" onclick="lancarVale(${f.id})">+ Lançar</button>
         </div>
         ${acumulado>0?`<button class="btn btn-danger btn-sm" style="width:100%;margin-top:6px" onclick="zerarVale(${f.id})">✅ Marcar acerto como feito (zerar)</button>`:''}
