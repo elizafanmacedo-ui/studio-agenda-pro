@@ -639,6 +639,31 @@ function servicoTemQuimica(nomeServico) {
   return SERVICOS_QUIMICA_REF.some(ref => n.includes(ref));
 }
 
+// Calcula o período de acerto atual do profissional, com offset (0 = período atual,
+// -1 = período anterior, +1 = próximo), baseado na periodicidade e dia de corte definidos pelo admin
+function calcularPeriodoAcerto(prof, offset = 0) {
+  const periodicidade = prof.periodicidade || 'quinzenal';
+  const diaCorte = prof.diaCorte || 1;
+  const hoje = new Date();
+
+  if (periodicidade === 'mensal') {
+    const base = new Date(hoje.getFullYear(), hoje.getMonth() + offset, diaCorte);
+    const inicio = new Date(base);
+    const fim = new Date(base.getFullYear(), base.getMonth() + 1, diaCorte - 1);
+    return { inicio, fim, label: inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) + ' a ' + fim.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) };
+  }
+
+  const duracaoDias = periodicidade === 'semanal' ? 7 : 15;
+  const anoRef = new Date(hoje.getFullYear(), 0, diaCorte);
+  const diffDias = Math.floor((hoje - anoRef) / 86400000);
+  const cicloAtual = Math.floor(diffDias / duracaoDias);
+  const inicio = new Date(anoRef);
+  inicio.setDate(inicio.getDate() + (cicloAtual + offset) * duracaoDias);
+  const fim = new Date(inicio);
+  fim.setDate(fim.getDate() + duracaoDias - 1);
+  return { inicio, fim, label: inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) + ' a ' + fim.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) };
+}
+
 function percentualComissao(nomeServico) {
   return servicoTemQuimica(nomeServico) ? 0.45 : 0.50;
 }
@@ -1094,8 +1119,12 @@ function salvarValorAgendamento(id, valor) {
 // FATURAMENTO
 // ═══════════════════════════════════════
 let fatMesOffset = 0;
+let fatPeriodoOffset = 0;
 
-function moveMesFaturamento(delta) { fatMesOffset += delta; renderFaturamento(); }
+function moveMesFaturamento(delta) {
+  if (currentUser === 1) { fatMesOffset += delta; } else { fatPeriodoOffset += delta; }
+  renderFaturamento();
+}
 
 async function lancarVale(profId) {
   const input = document.getElementById('vale-valor-' + profId);
@@ -1123,45 +1152,58 @@ async function zerarVale(profId) {
 }
 
 function renderFaturamento() {
-  const base = new Date();
-  base.setDate(1);
-  base.setMonth(base.getMonth() + fatMesOffset);
-  const ano = base.getFullYear();
-  const mes = base.getMonth();
-  const mesLabel = base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
-  const lbl = document.getElementById('fat-mes-label');
-  if (lbl) { const s = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1); lbl.textContent = s; }
-
   const ehDono = currentUser === 1;
   const cont = document.getElementById('fat-conteudo');
   if (!cont) return;
 
-  // Agendamentos do mês com valor (exceto cancelado)
+  let ano, mes, mesLabel, filtroData;
+
+  if (ehDono) {
+    const base = new Date();
+    base.setDate(1);
+    base.setMonth(base.getMonth() + fatMesOffset);
+    ano = base.getFullYear();
+    mes = base.getMonth();
+    mesLabel = base.toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+    filtroData = (dataStr) => {
+      const partes = dataStr.split('-');
+      return parseInt(partes[0]) === ano && (parseInt(partes[1]) - 1) === mes;
+    };
+  } else {
+    const prof = FUNCIONARIOS.find(f => f.id === currentUser);
+    const periodo = calcularPeriodoAcerto(prof || {}, fatPeriodoOffset);
+    mesLabel = periodo.label;
+    filtroData = (dataStr) => {
+      const d = new Date(dataStr + 'T00:00:00');
+      return d >= periodo.inicio && d <= periodo.fim;
+    };
+  }
+
+  const lbl = document.getElementById('fat-mes-label');
+  if (lbl) { const s = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1); lbl.textContent = s; }
+
+  // Agendamentos do período com valor (exceto cancelado)
   const doMes = agendamentos.filter(a => {
     if (a.status === 'cancelado') return false;
     if (!a.data) return false;
-    const partes = a.data.split('-');
-    return parseInt(partes[0]) === ano && (parseInt(partes[1]) - 1) === mes && typeof a.valor === 'number' && a.valor > 0;
+    return filtroData(a.data) && typeof a.valor === 'number' && a.valor > 0;
   }).sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
 
-  // Agendamentos do mês SEM valor preenchido (para aviso, não bloqueia nada)
+  // Agendamentos do período SEM valor preenchido (para aviso, não bloqueia nada)
   const semValorDoMes = agendamentos.filter(a => {
     if (a.status === 'cancelado') return false;
     if (!a.data) return false;
-    const partes = a.data.split('-');
-    const doMesCerto = parseInt(partes[0]) === ano && (parseInt(partes[1]) - 1) === mes;
-    return doMesCerto && (typeof a.valor !== 'number' || a.valor <= 0);
+    return filtroData(a.data) && (typeof a.valor !== 'number' || a.valor <= 0);
   });
 
-  // Lançamentos avulsos do mês
+  // Lançamentos avulsos do período (só existem para o admin)
   const avulsosDoMes = [];
   Object.entries(lancamentosAvulsos).forEach(([key, valor]) => {
     if (!valor || valor <= 0) return;
     const partes = key.split('_');
     if (partes.length < 3) return;
     const data = partes[0]; const hora = partes[1]; const profId = parseInt(partes[2]);
-    const kp = data.split('-');
-    if (parseInt(kp[0]) === ano && (parseInt(kp[1]) - 1) === mes) {
+    if (filtroData(data)) {
       avulsosDoMes.push({ data, hora, profId, valor, nomeCliente: '(avulso)', servicoIds: [], isAvulso: true });
     }
   });
@@ -2318,6 +2360,20 @@ function editarProfissional(id) {
         <label>Serviços realizados</label>
         <div style="max-height:160px;overflow-y:auto;border:1px solid var(--rose-light);border-radius:10px;padding:8px;margin-top:4px">${todosSvcs}</div>
       </div>
+      ${currentUser===1 && id!==1 ? `
+      <div class="form-group" style="margin:0;border-top:1px solid var(--rose-light);padding-top:12px">
+        <label>💰 Periodicidade do acerto de comissão</label>
+        <select id="ep-periodicidade" style="margin-top:4px">
+          <option value="semanal" ${prof.periodicidade==='semanal'?'selected':''}>Semanal</option>
+          <option value="quinzenal" ${(!prof.periodicidade||prof.periodicidade==='quinzenal')?'selected':''}>Quinzenal</option>
+          <option value="mensal" ${prof.periodicidade==='mensal'?'selected':''}>Mensal</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Dia de corte</label>
+        <input type="number" id="ep-dia-corte" min="1" max="31" value="${prof.diaCorte||1}" placeholder="Ex: 1, 15...">
+        <div style="font-size:0.72rem;color:var(--mid);margin-top:2px">Dia do mês em que o período começa a contar (semanal/quinzenal usa como referência inicial)</div>
+      </div>` : ''}
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-editar-prof')">Cancelar</button>
         <button class="btn btn-primary" style="flex:1" onclick="salvarEdicaoProfissional(${id})">Salvar</button>
@@ -2326,7 +2382,7 @@ function editarProfissional(id) {
   openModal('modal-editar-prof');
 }
 
-function salvarEdicaoProfissional(id) {
+async function salvarEdicaoProfissional(id) {
   const prof = FUNCIONARIOS.find(f => f.id === id);
   if (!prof) return;
   const novoNome = document.getElementById('ep-nome').value.trim();
@@ -2334,12 +2390,18 @@ function salvarEdicaoProfissional(id) {
   const novaCor = document.getElementById('ep-cor-val').value;
   if (!novoNome) { showToast('Digite um nome'); return; }
   prof.nome = novoNome; prof.emoji = novoEmoji||'💅'; prof.cor = novaCor;
+  const elPeriodicidade = document.getElementById('ep-periodicidade');
+  const elDiaCorte = document.getElementById('ep-dia-corte');
+  if (elPeriodicidade) prof.periodicidade = elPeriodicidade.value;
+  if (elDiaCorte) prof.diaCorte = parseInt(elDiaCorte.value) || 1;
   document.querySelectorAll('.ep-svc-check').forEach(c => {
     const svc = SERVICOS.find(s => s.id === parseInt(c.value));
     if (!svc) return;
     if (c.checked && !svc.profissionais.includes(id)) svc.profissionais.push(id);
     else if (!c.checked) svc.profissionais = svc.profissionais.filter(x => x !== id);
   });
+  await salvarEquipeFirebase();
+  await saveServicosFirebase();
   closeModal('modal-editar-prof');
   renderFuncionarios(); renderServicos(); renderTimeline();
   showToast('✅ Profissional atualizada!');
