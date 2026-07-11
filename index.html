@@ -329,7 +329,7 @@ textarea { resize:vertical; min-height:80px; }
   <div class="card">
     <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
       <span>✨ Tabela de Serviços</span>
-      <button class="btn btn-primary btn-sm" onclick="openModal('modal-novo-servico')">+ Novo</button>
+      <button class="btn btn-primary btn-sm" id="btn-novo-servico" onclick="openModal('modal-novo-servico')">+ Novo</button>
     </div>
     <div class="form-group" style="margin-bottom:8px">
       <input type="text" id="search-servico" placeholder="🔍 Buscar serviço..." oninput="renderServicos()" style="border-radius:20px">
@@ -2251,14 +2251,15 @@ function salvarCliente() {
 function renderFuncionarios() {
   document.getElementById('lista-funcionarios').innerHTML = FUNCIONARIOS.map(f => {
     const hoje = agendamentos.filter(a => a.profId===f.id && a.data===today() && a.status!=='cancelado').length;
-    return `<div class="list-item" style="cursor:pointer" onclick="editarProfissional(${f.id})">
+    const podeEditar = (currentUser === 1) || (currentUser === f.id);
+    return `<div class="list-item" style="cursor:${podeEditar?'pointer':'default'}" ${podeEditar?`onclick="editarProfissional(${f.id})"`:''}>
       <div class="avatar ${f.cor}">${f.emoji}</div>
       <div class="list-info">
         <div class="list-name">${f.nome}</div>
         <div class="list-sub">${f.role}</div>
         <div class="list-sub" style="margin-top:4px"><span class="badge badge-rose">${hoje} hoje</span></div>
       </div>
-      <div style="color:var(--mid);font-size:0.8rem">✏️</div>
+      ${podeEditar?'<div style="color:var(--mid);font-size:0.8rem">✏️</div>':''}
     </div>`;
   }).join('');
 }
@@ -2278,6 +2279,7 @@ function updateStats() {
 }
 
 function editarProfissional(id) {
+  if (currentUser !== 1 && currentUser !== id) { showToast('Você só pode editar o seu próprio perfil'); return; }
   const prof = FUNCIONARIOS.find(f => f.id === id);
   if (!prof) return;
   const todosSvcs = SERVICOS.map(s =>
@@ -2370,8 +2372,8 @@ function renderServicos() {
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <div class="service-price">${formatarMoeda(s.preco)}</div>
-          <button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:0.7rem" onclick="abrirEditarServico(${s.id})">✏️</button>
-          <button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:0.7rem" onclick="confirmarDeletarServico(${s.id})">🗑</button>
+          ${currentUser===1?`<button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:0.7rem" onclick="abrirEditarServico(${s.id})">✏️</button>
+          <button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:0.7rem" onclick="confirmarDeletarServico(${s.id})">🗑</button>`:''}
         </div>
       </div>`;
     });
@@ -2381,6 +2383,7 @@ function renderServicos() {
 }
 
 function abrirEditarServico(id) {
+  if (currentUser !== 1) { showToast('Só o administrador pode editar serviços'); return; }
   const s = SERVICOS.find(x => x.id === id);
   if (!s) return;
   document.getElementById('ns-titulo').textContent = '✏️ Editar Serviço';
@@ -2399,6 +2402,7 @@ function abrirEditarServico(id) {
 }
 
 function confirmarDeletarServico(id) {
+  if (currentUser !== 1) { showToast('Só o administrador pode excluir serviços'); return; }
   const s = SERVICOS.find(x => x.id === id);
   if (!s) return;
   if (!confirm('Excluir o serviço "' + s.nome + '"?')) return;
@@ -2409,6 +2413,7 @@ function confirmarDeletarServico(id) {
 }
 
 async function salvarServico() {
+  if (currentUser !== 1) { showToast('Só o administrador pode gerenciar o catálogo de serviços'); closeModal('modal-novo-servico'); return; }
   const nome = document.getElementById('ns-nome').value.trim();
   const cat = document.getElementById('ns-cat').value.trim() || 'Outros';
   const duracao = parseInt(document.getElementById('ns-duracao').value);
@@ -2589,7 +2594,7 @@ function showPage(id, btn) {
   document.getElementById('fab-agendamento').style.display = (id==='agenda' ? 'flex' : 'none');
   if (id==='clientes') renderClientes();
   if (id==='funcionarios') { renderFuncionarios(); updateStats(); document.getElementById('card-trocar-senha').style.display=(currentUser===1?'block':'none'); }
-  if (id==='servicos') renderServicos();
+  if (id==='servicos') { renderServicos(); document.getElementById('btn-novo-servico').style.display = (currentUser===1 ? 'inline-flex' : 'none'); }
   if (id==='faturamento') { fatMesOffset = 0; if (agendamentos.length > 0) { renderFaturamento(); } else { loadFromFirebase().then(() => renderFaturamento()); } }
   if (id==='config') { testarFirebase(); document.getElementById('card-gerenciar-equipe').style.display=(currentUser===1?'block':'none'); renderListaEquipeConfig(); renderSeletorTemas(); }
 }
