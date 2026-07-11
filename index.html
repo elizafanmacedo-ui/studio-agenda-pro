@@ -684,7 +684,12 @@ async function loadFromFirebase() {
     const porId = {};
     novos.forEach(a => { porId[a.id] = a; });
     agendamentos = Object.values(porId);
-    if (currentUser) { renderWeek(); setTimeout(renderTimeline, 100); updateStats(); if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento(); }
+    if (currentUser) {
+      renderWeek(); setTimeout(renderTimeline, 100); updateStats();
+      const focoAtual = document.activeElement && document.activeElement.id || '';
+      const digitandoVale = focoAtual.startsWith('vale-valor-');
+      if (document.getElementById('page-faturamento').classList.contains('active') && !digitandoVale) renderFaturamento();
+    }
   } catch(e) { console.log('Sync agendamentos error', e); }
 }
 
