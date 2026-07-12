@@ -537,6 +537,15 @@ textarea { resize:vertical; min-height:80px; }
   </div>
 </div>
 
+<!-- ═══════════ MODAL: ACERTO POR PROFISSIONAL ═══════════ -->
+<div class="modal-bg" id="modal-acerto" style="z-index:650">
+  <div class="modal" style="padding-bottom:24px">
+    <div class="modal-handle"></div>
+    <div id="acerto-body"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:14px" onclick="fecharAcerto()">Fechar</button>
+  </div>
+</div>
+
 <!-- ═══════════ MODAL: NOVA CLIENTE ═══════════ -->
 <div class="modal-bg" id="modal-nova-cliente">
   <div class="modal">
@@ -1208,7 +1217,168 @@ async function zerarVale(profId) {
   f.valeAcumulado = 0;
   await salvarEquipeFirebase();
   renderFaturamento();
+  if (acertoProfAberto === profId) renderAcerto();
   showToast('✅ Acerto marcado, vale zerado!');
+}
+
+// ═══════════════════════════════════════
+// ACERTO POR PROFISSIONAL (caixinha do admin)
+// ═══════════════════════════════════════
+let acertoProfAberto = null;
+let acertoPeriodoOffset = {};
+
+function abrirAcerto(profId) {
+  acertoProfAberto = profId;
+  if (acertoPeriodoOffset[profId] === undefined) acertoPeriodoOffset[profId] = 0;
+  renderAcerto();
+  document.getElementById('modal-acerto').classList.add('open');
+}
+
+function fecharAcerto() {
+  document.getElementById('modal-acerto').classList.remove('open');
+  acertoProfAberto = null;
+}
+
+function moveAcertoPeriodo(delta) {
+  if (acertoProfAberto === null) return;
+  acertoPeriodoOffset[acertoProfAberto] = (acertoPeriodoOffset[acertoProfAberto] || 0) + delta;
+  renderAcerto();
+}
+
+function renderAcerto() {
+  const body = document.getElementById('acerto-body');
+  if (!body || acertoProfAberto === null) return;
+  const f = FUNCIONARIOS.find(x => x.id === acertoProfAberto);
+  if (!f) return;
+
+  const offset = acertoPeriodoOffset[acertoProfAberto] || 0;
+  const periodo = calcularPeriodoAcerto(f, offset);
+  const filtroData = (dataStr) => {
+    const d = new Date(dataStr + 'T00:00:00');
+    return d >= periodo.inicio && d <= periodo.fim;
+  };
+
+  const lancamentos = agendamentos.filter(a => {
+    if (a.profId !== f.id) return false;
+    if (a.status === 'cancelado') return false;
+    if (!a.data) return false;
+    return filtroData(a.data);
+  }).sort((a,b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora));
+
+  const comValor = lancamentos.filter(a => typeof a.valor === 'number' && a.valor > 0);
+  const semValor = lancamentos.filter(a => !(typeof a.valor === 'number' && a.valor > 0));
+
+  let brutoComQuimica = 0, brutoSemQuimica = 0;
+  comValor.forEach(a => {
+    if (a.valorQM !== undefined || a.valorSQM !== undefined) {
+      brutoComQuimica += a.valorQM || 0;
+      brutoSemQuimica += a.valorSQM || 0;
+      return;
+    }
+    const idsServicos = a.servicoIds || [];
+    const servicosDoAgendamento = idsServicos.map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
+    const somenteQuimica = servicosDoAgendamento.length > 0 && servicosDoAgendamento.every(s => servicoTemQuimica(s.nome));
+    if (somenteQuimica) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
+  });
+
+  const comissaoComQuimica = brutoComQuimica * 0.45;
+  const comissaoSemQuimica = brutoSemQuimica * 0.50;
+  const comissaoTotal = comissaoComQuimica + comissaoSemQuimica;
+  const valeAcumulado = f.valeAcumulado || 0;
+  const valorFinal = comissaoTotal - valeAcumulado;
+
+  const ultimoAcerto = (f.valesHistorico || []).filter(v => v.zerado).slice(-1)[0];
+
+  const tagLancamento = (a) => {
+    if (!(typeof a.valor === 'number' && a.valor > 0)) return `<span style="font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:8px;background:#fff3d6;color:#8a6100">sem valor</span>`;
+    if (a.valorQM !== undefined || a.valorSQM !== undefined) {
+      if ((a.valorQM||0) > 0 && (a.valorSQM||0) > 0) return `<span style="font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:8px;background:var(--rose-light);color:var(--rose-dark)">QM+SQM</span>`;
+      if ((a.valorQM||0) > 0) return `<span style="font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:8px;background:#fbe2e2;color:#a13a3a">QM</span>`;
+      return `<span style="font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:8px;background:#e0f0e0;color:#2f7a3f">SQM</span>`;
+    }
+    return `<span style="font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:8px;background:var(--light);color:var(--mid)">auto</span>`;
+  };
+
+  let html = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--rose-light);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">${f.emoji||'👤'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:1rem">${f.nome}</div>
+        <div style="font-size:0.75rem;color:var(--mid)">${(f.periodicidade||'quinzenal').charAt(0).toUpperCase()+(f.periodicidade||'quinzenal').slice(1)} · corte dia ${f.diaCorte||1}${ultimoAcerto?' · último acerto '+formatDate(ultimoAcerto.data):''}</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <button class="btn btn-ghost btn-sm" onclick="moveAcertoPeriodo(-1)">‹</button>
+      <div style="font-weight:700;font-size:0.9rem">${periodo.label}</div>
+      <button class="btn btn-ghost btn-sm" onclick="moveAcertoPeriodo(1)">›</button>
+    </div>
+
+    <div style="font-size:0.75rem;color:var(--mid);margin-bottom:6px">Lançamentos (${lancamentos.length})</div>
+    <div style="max-height:180px;overflow-y:auto;margin-bottom:14px">`;
+
+  if (lancamentos.length === 0) {
+    html += `<div style="text-align:center;color:var(--mid);padding:14px 0;font-size:0.82rem">Nenhum lançamento neste período</div>`;
+  } else {
+    lancamentos.forEach(a => {
+      const svcs = (a.servicoIds||[]).map(id=>SERVICOS.find(s=>s.id===id)?.nome).filter(Boolean).join(', ') || '—';
+      html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--light)">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.82rem;font-weight:600">${formatDate(a.data)} · ${svcs}</div>
+          <div style="font-size:0.72rem;color:var(--mid)">${a.nomeCliente||'—'}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:8px">
+          ${tagLancamento(a)}
+          <div style="font-size:0.82rem;font-weight:700;margin-top:3px">${a.valor?formatarMoeda(a.valor):'—'}</div>
+        </div>
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  if (semValor.length > 0) {
+    html += `<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;background:#fff9ed;border-radius:8px;margin-bottom:12px">
+      <span style="font-size:0.9rem">⚠️</span>
+      <span style="font-size:0.75rem;color:#8a6100">${semValor.length} lançamento${semValor.length!==1?'s':''} sem valor — não entra${semValor.length!==1?'m':''} no cálculo</span>
+    </div>`;
+  }
+
+  html += `<div style="font-size:0.75rem;color:var(--mid);margin-bottom:6px">Cálculo</div>`;
+
+  html += `<div style="background:var(--light);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+    <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:5px"><span>Bruto QM</span><strong>${formatarMoeda(brutoComQuimica)}</strong></div>
+    <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-top:5px;border-top:1px dashed var(--rose-light)"><span>× 45%</span><strong style="color:var(--rose-dark)">${formatarMoeda(comissaoComQuimica)}</strong></div>
+  </div>
+  <div style="background:var(--light);border-radius:10px;padding:10px 12px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:5px"><span>Bruto SQM</span><strong>${formatarMoeda(brutoSemQuimica)}</strong></div>
+    <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding-top:5px;border-top:1px dashed var(--rose-light)"><span>× 50%</span><strong style="color:var(--rose-dark)">${formatarMoeda(comissaoSemQuimica)}</strong></div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--rose-light);border-radius:10px;margin-bottom:8px">
+    <span style="font-size:0.85rem">Comissão total</span>
+    <strong style="color:var(--rose-dark)">${formatarMoeda(comissaoTotal)}</strong>
+  </div>`;
+
+  if (valeAcumulado > 0) {
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:#fbe2e2;border-radius:10px;margin-bottom:10px">
+      <span style="font-size:0.85rem;color:#a13a3a">− Vale</span>
+      <strong style="color:#a13a3a">${formatarMoeda(valeAcumulado)}</strong>
+    </div>`;
+  }
+
+  html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#e0f0e0;border-radius:10px;margin-bottom:14px">
+    <span style="font-size:0.85rem;color:#2f7a3f">Valor líquido a pagar</span>
+    <strong style="color:#2f7a3f;font-size:1.15rem">${formatarMoeda(valorFinal)}</strong>
+  </div>`;
+
+  html += `<div style="display:flex;gap:6px">
+    <input type="number" inputmode="decimal" id="vale-valor-${f.id}" placeholder="Novo vale" onfocus="window.valeEmEdicao=true" onblur="window.valeEmEdicao=false" style="flex:1;padding:6px 10px;border:1px solid var(--rose-light);border-radius:8px;font-size:0.85rem">
+    <button class="btn btn-ghost btn-sm" onclick="lancarVale(${f.id})">+ Lançar</button>
+  </div>`;
+
+  html += `<button class="btn btn-primary btn-full" style="margin-top:10px" onclick="zerarVale(${f.id})">✅ Marcar como acertado</button>`;
+
+  body.innerHTML = html;
 }
 
 function renderFaturamento() {
@@ -1353,6 +1523,23 @@ function renderFaturamento() {
     });
   }
   html += `</div>`;
+
+  if (ehDono) {
+    html += `<div class="card" style="margin-bottom:14px">
+      <div class="card-title">🧮 Acerto por Profissional</div>
+      <div style="font-size:0.78rem;color:var(--mid);margin-bottom:10px">Toque no nome pra ver o cálculo de comissão, lançamentos e vale do período de cada um.</div>`;
+    FUNCIONARIOS.filter(f => f.id !== 1).forEach(f => {
+      const acumulado = f.valeAcumulado || 0;
+      html += `<div onclick="abrirAcerto(${f.id})" style="display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--light);cursor:pointer">
+        <div>
+          <div style="font-weight:600">${f.emoji||''} ${f.nome}</div>
+          <div style="font-size:0.72rem;color:var(--mid)">${(f.periodicidade||'quinzenal').charAt(0).toUpperCase()+(f.periodicidade||'quinzenal').slice(1)}${acumulado>0?' · vale pendente':''}</div>
+        </div>
+        <span style="color:var(--rose-dark);font-size:1.1rem">›</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
 
   if (ehDono) {
     html += `<div class="card" style="margin-bottom:14px">
