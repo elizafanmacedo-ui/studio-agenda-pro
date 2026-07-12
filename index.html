@@ -120,6 +120,16 @@ textarea { resize:vertical; min-height:80px; }
 .slot-valor-prefix { font-size:0.72rem; font-weight:700; color:var(--mid); }
 .slot-valor-input { width:52px; border:none; background:transparent; font-size:0.86rem; font-weight:800; color:var(--dark); text-align:right; }
 .slot-valor-input:focus { outline:none; }
+.qmsqm-box { position:relative; flex-shrink:0; }
+.qmsqm-fechada { display:flex; align-items:center; gap:2px; background:rgba(255,255,255,0.6); border-radius:8px; padding:2px 6px; cursor:pointer; }
+.qmsqm-expandida { display:none; position:absolute; top:-4px; right:0; z-index:60; background:white; border:2px solid var(--rose); border-radius:8px; padding:5px; box-shadow:0 4px 14px rgba(126,78,87,0.25); width:100px; }
+.qmsqm-expandida.aberta { display:block; }
+.qmsqm-campo { display:flex; align-items:center; gap:3px; border:1px solid var(--rose-light); border-radius:6px; padding:2px 5px; background:var(--light); margin-bottom:4px; }
+.qmsqm-campo:last-child { margin-bottom:0; }
+.qmsqm-sigla { font-size:0.6rem; font-weight:800; color:var(--rose-dark); flex-shrink:0; }
+.qmsqm-sigla.escondida { display:none; }
+.qmsqm-campo input { width:100%; border:none; background:transparent; font-size:0.8rem; text-align:right; padding:1px 0; }
+.qmsqm-campo input:focus { outline:none; }
 
 /* ── LISTAS ── */
 .list-item { display:flex; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid var(--light); }
@@ -874,7 +884,7 @@ function startSync() {
   loadConfigFromFirebase();
   loadLancamentosAvulsos();
   syncInterval = setInterval(() => {
-    if (window.valeEmEdicao) return;
+    if (window.valeEmEdicao || window.valorAgendamentoEmEdicao) return;
     loadFromFirebase(); loadClientesFromFirebase();
   }, 5000);
 }
@@ -1106,6 +1116,56 @@ function alterarStatus(novoStatus) {
 // ═══════════════════════════════════════
 // VALOR (campo para uso futuro — não remover)
 // ═══════════════════════════════════════
+let qmSqmAberta = null;
+
+function toggleQmSqm(apptId) {
+  const el = document.getElementById('expandida-' + apptId);
+  if (!el) return;
+  if (qmSqmAberta && qmSqmAberta !== apptId) {
+    const anterior = document.getElementById('expandida-' + qmSqmAberta);
+    if (anterior) anterior.classList.remove('aberta');
+  }
+  el.classList.toggle('aberta');
+  qmSqmAberta = el.classList.contains('aberta') ? apptId : null;
+}
+
+function esconderSiglaQmSqm(apptId, tipo) {
+  window.valorAgendamentoEmEdicao = true;
+  const sigla = document.getElementById('sigla-' + tipo + '-' + apptId);
+  if (sigla) sigla.classList.add('escondida');
+}
+
+function restaurarSiglaQmSqm(apptId, tipo) {
+  window.valorAgendamentoEmEdicao = false;
+  const input = document.getElementById('input-' + tipo + '-' + apptId);
+  const sigla = document.getElementById('sigla-' + tipo + '-' + apptId);
+  if (sigla && input && input.value === '') sigla.classList.remove('escondida');
+}
+
+async function salvarValorQmSqm(apptId) {
+  const a = agendamentos.find(x => x.id === apptId);
+  if (!a) return;
+  const qmInput = document.getElementById('input-qm-' + apptId);
+  const sqmInput = document.getElementById('input-sqm-' + apptId);
+  const qm = parseFloat(qmInput.value) || 0;
+  const sqm = parseFloat(sqmInput.value) || 0;
+  a.valorQM = qmInput.value === '' ? null : qm;
+  a.valorSQM = sqmInput.value === '' ? null : sqm;
+  a.valor = qm + sqm;
+  const somaEl = document.getElementById('soma-' + apptId);
+  if (somaEl) somaEl.textContent = a.valor;
+  await saveAgendamento(a.id, a);
+  if (document.getElementById('page-faturamento').classList.contains('active')) renderFaturamento();
+}
+
+document.addEventListener('click', (e) => {
+  if (qmSqmAberta && !e.target.closest('.qmsqm-box')) {
+    const el = document.getElementById('expandida-' + qmSqmAberta);
+    if (el) el.classList.remove('aberta');
+    qmSqmAberta = null;
+  }
+});
+
 function salvarValorAgendamento(id, valor) {
   const a = agendamentos.find(x => x.id === id);
   if (!a) return;
@@ -1250,11 +1310,17 @@ function renderFaturamento() {
 
     let brutoSemQuimica = 0, brutoComQuimica = 0;
     listaAgend.forEach(a => {
-      const temQuimica = (a.servicoIds||[]).some(sid => {
-        const s = SERVICOS.find(x => x.id === sid);
-        return s && servicoTemQuimica(s.nome);
-      });
-      if (temQuimica) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
+      // Se o agendamento já tem a divisão manual QM/SQM anotada, usa ela diretamente
+      if (a.valorQM !== undefined || a.valorSQM !== undefined) {
+        brutoComQuimica += a.valorQM || 0;
+        brutoSemQuimica += a.valorSQM || 0;
+        return;
+      }
+      // Agendamentos antigos (sem a divisão manual) continuam usando a detecção automática por nome de serviço
+      const idsServicos = a.servicoIds || [];
+      const servicosDoAgendamento = idsServicos.map(sid => SERVICOS.find(x => x.id === sid)).filter(Boolean);
+      const somenteQuimica = servicosDoAgendamento.length > 0 && servicosDoAgendamento.every(s => servicoTemQuimica(s.nome));
+      if (somenteQuimica) brutoComQuimica += a.valor; else brutoSemQuimica += a.valor;
     });
     const comissaoSemQuimica = brutoSemQuimica * 0.50;
     const comissaoComQuimica = brutoComQuimica * 0.45;
@@ -1919,17 +1985,32 @@ function renderTimeline() {
     const st = appt ? (STATUS_LABELS[appt.status] || STATUS_LABELS.confirmado) : null;
     rows += `<tr><td class="hora-td">${slot}</td>`;
     if (appt) {
-      const valorAtual = (appt.valor !== undefined && appt.valor !== null) ? appt.valor : '';
+      const valorAtual = (appt.valor !== undefined && appt.valor !== null) ? appt.valor : 0;
+      const qmAtual = (appt.valorQM !== undefined && appt.valorQM !== null) ? appt.valorQM : '';
+      const sqmAtual = (appt.valorSQM !== undefined && appt.valorSQM !== null) ? appt.valorSQM : '';
       rows += `<td class="slot-td tem-appt">
         <div class="slot-appt-content" onclick="verAgendamento(${appt.id})">
           <div class="slot-nome">${appt.nomeCliente}</div>
           <div class="slot-svc">${getNomesServicos(appt)}</div>
         </div>
-        <div class="slot-valor-wrap" onclick="event.stopPropagation()">
-          <span class="slot-valor-prefix">R$</span>
-          <input type="number" inputmode="decimal" class="slot-valor-input" placeholder="0" value="${valorAtual}"
-            onclick="event.stopPropagation()"
-            onchange="salvarValorAgendamento(${appt.id},this.value)">
+        <div class="qmsqm-box" onclick="event.stopPropagation()">
+          <div class="qmsqm-fechada" onclick="toggleQmSqm(${appt.id})">
+            <span class="slot-valor-prefix">R$</span><span class="qmsqm-soma" id="soma-${appt.id}">${valorAtual}</span>
+          </div>
+          <div class="qmsqm-expandida" id="expandida-${appt.id}">
+            <div class="qmsqm-campo">
+              <span class="qmsqm-sigla" id="sigla-qm-${appt.id}">QM</span>
+              <input type="number" inputmode="decimal" id="input-qm-${appt.id}" value="${qmAtual}"
+                onfocus="esconderSiglaQmSqm(${appt.id},'qm')" onblur="restaurarSiglaQmSqm(${appt.id},'qm')"
+                onchange="salvarValorQmSqm(${appt.id})">
+            </div>
+            <div class="qmsqm-campo">
+              <span class="qmsqm-sigla" id="sigla-sqm-${appt.id}">SQM</span>
+              <input type="number" inputmode="decimal" id="input-sqm-${appt.id}" value="${sqmAtual}"
+                onfocus="esconderSiglaQmSqm(${appt.id},'sqm')" onblur="restaurarSiglaQmSqm(${appt.id},'sqm')"
+                onchange="salvarValorQmSqm(${appt.id})">
+            </div>
+          </div>
         </div>
       </td>`;
     } else {
