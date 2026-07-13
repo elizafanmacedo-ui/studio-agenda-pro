@@ -1528,7 +1528,7 @@ function renderFaturamento() {
     html += `<div class="card" style="margin-bottom:14px">
       <div class="card-title">🧮 Acerto por Profissional</div>
       <div style="font-size:0.78rem;color:var(--mid);margin-bottom:10px">Toque no nome pra ver o cálculo de comissão, lançamentos e vale do período de cada um.</div>`;
-    FUNCIONARIOS.filter(f => f.id !== 1).forEach(f => {
+    FUNCIONARIOS.filter(f => f.id !== 1 && f.tipo !== 'socio').forEach(f => {
       const acumulado = f.valeAcumulado || 0;
       html += `<div onclick="abrirAcerto(${f.id})" style="display:flex;justify-content:space-between;align-items:center;padding:10px 4px;border-bottom:1px solid var(--light);cursor:pointer">
         <div>
@@ -1545,7 +1545,7 @@ function renderFaturamento() {
     html += `<div class="card" style="margin-bottom:14px">
       <div class="card-title">💵 Vales e Adiantamentos</div>
       <div style="font-size:0.78rem;color:var(--mid);margin-bottom:10px">Só você vê e gerencia esta área. O profissional vê apenas o desconto final no próprio resumo.</div>`;
-    FUNCIONARIOS.filter(f => f.id !== 1).forEach(f => {
+    FUNCIONARIOS.filter(f => f.id !== 1 && f.tipo !== 'socio').forEach(f => {
       const acumulado = f.valeAcumulado || 0;
       const historico = f.valesHistorico || [];
       html += `<div style="border:1px solid var(--rose-light);border-radius:10px;padding:10px;margin-bottom:8px">
@@ -1845,18 +1845,36 @@ function renderListaEquipeConfig() {
   const el = document.getElementById('lista-equipe-config');
   if (!el) return;
   el.innerHTML = FUNCIONARIOS.map(f => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--light)">
-      <div>
-        <span style="font-weight:600">${f.emoji} ${f.nome}</span>
-        ${f.id === 1 ? '<span style="font-size:0.7rem;color:var(--rose-dark);margin-left:6px">Admin</span>' : ''}
-        <div style="font-size:0.75rem;color:var(--mid)">${f.role||''}</div>
+    <div style="padding:10px 0;border-bottom:1px solid var(--light)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <span style="font-weight:600">${f.emoji} ${f.nome}</span>
+          ${f.id === 1 ? '<span style="font-size:0.7rem;color:var(--rose-dark);margin-left:6px">Admin</span>' : ''}
+          ${f.tipo === 'socio' ? '<span style="font-size:0.7rem;color:var(--gold);margin-left:6px">🤝 Sócio</span>' : ''}
+          <div style="font-size:0.75rem;color:var(--mid)">${f.role||''}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="abrirModalEditarProf(${f.id})">✏️</button>
+          ${f.id !== 1 ? `<button class="btn btn-ghost btn-sm" style="color:#e74c3c" onclick="removerProfissional(${f.id})">🗑️</button>` : ''}
+        </div>
       </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="abrirModalEditarProf(${f.id})">✏️</button>
-        ${f.id !== 1 ? `<button class="btn btn-ghost btn-sm" style="color:#e74c3c" onclick="removerProfissional(${f.id})">🗑️</button>` : ''}
-      </div>
+      ${f.id !== 1 ? `<button class="btn btn-ghost btn-sm btn-full" style="margin-top:6px" onclick="alternarTipoSocio(${f.id})">${f.tipo==='socio' ? '👤 Tornar Funcionário' : '🤝 Tornar Sócio'}</button>` : ''}
     </div>
   `).join('');
+}
+
+async function alternarTipoSocio(id) {
+  const f = FUNCIONARIOS.find(x => x.id === id);
+  if (!f) return;
+  const vaiVirarSocio = f.tipo !== 'socio';
+  const msg = vaiVirarSocio
+    ? `Tornar ${f.nome} sócio(a)? A partir de agora não entra mais no cálculo de comissão, não precisa preencher QM/SQM, e sai da lista de Acerto. Isso pode ser revertido depois.`
+    : `Tornar ${f.nome} funcionário(a) novamente? Volta a ter comissão calculada normalmente.`;
+  if (!confirm(msg)) return;
+  f.tipo = vaiVirarSocio ? 'socio' : 'funcionario';
+  await salvarEquipeFirebase();
+  renderListaEquipeConfig();
+  showToast(vaiVirarSocio ? '🤝 Agora é sócio(a)' : '👤 Agora é funcionário(a)');
 }
 
 // ═══════════════════════════════════════
@@ -2175,11 +2193,20 @@ function renderTimeline() {
       const valorAtual = (appt.valor !== undefined && appt.valor !== null) ? appt.valor : 0;
       const qmAtual = (appt.valorQM !== undefined && appt.valorQM !== null) ? appt.valorQM : '';
       const sqmAtual = (appt.valorSQM !== undefined && appt.valorSQM !== null) ? appt.valorSQM : '';
+      const profDoAppt = FUNCIONARIOS.find(x => x.id === appt.profId);
+      const ehSocio = profDoAppt && profDoAppt.tipo === 'socio';
       rows += `<td class="slot-td tem-appt">
         <div class="slot-appt-content" onclick="verAgendamento(${appt.id})">
           <div class="slot-nome">${appt.nomeCliente}</div>
           <div class="slot-svc">${getNomesServicos(appt)}</div>
         </div>
+        ${ehSocio ? `
+        <div class="slot-valor-wrap" onclick="event.stopPropagation()">
+          <span class="slot-valor-prefix">R$</span>
+          <input type="number" inputmode="decimal" class="slot-valor-input" placeholder="0" value="${valorAtual||''}"
+            onclick="event.stopPropagation()"
+            onchange="salvarValorAgendamento(${appt.id}, this.value)">
+        </div>` : `
         <div class="qmsqm-box" onclick="event.stopPropagation()">
           <div class="qmsqm-fechada" onclick="toggleQmSqm(${appt.id})">
             <span class="slot-valor-prefix">R$</span><span class="qmsqm-soma" id="soma-${appt.id}">${valorAtual}</span>
@@ -2198,7 +2225,7 @@ function renderTimeline() {
                 onchange="salvarValorQmSqm(${appt.id})">
             </div>
           </div>
-        </div>
+        </div>`}
       </td>`;
     } else {
       const lancKey = selectedDate + '_' + slot + '_' + activeProfId;
