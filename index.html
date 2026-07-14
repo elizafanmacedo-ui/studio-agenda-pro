@@ -42,8 +42,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 .header-user:hover { background:rgba(255,255,255,0.2); }
 
 /* ── NAV ── */
-.nav { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); background:var(--white); border-bottom:1px solid var(--rose-light); position:sticky; top:52px; z-index:90; }
-.nav-btn { min-width:0; padding:10px 2px 9px; font-size:0.6rem; font-weight:600; text-align:center; border:none; background:none; cursor:pointer; color:var(--mid); border-bottom:3px solid transparent; transition:all 0.2s; letter-spacing:0.02em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nav { display:flex; background:var(--white); border-bottom:1px solid var(--rose-light); position:sticky; top:52px; z-index:90; }
+.nav-cell { flex:1 1 0; min-width:0; }
+.nav-btn { display:block; width:100%; min-width:0; padding:10px 2px 9px; font-size:0.6rem; font-weight:600; text-align:center; border:none; background:none; cursor:pointer; color:var(--mid); border-bottom:3px solid transparent; transition:all 0.2s; letter-spacing:0.02em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nav-btn.active { color:var(--rose-dark); border-bottom-color:var(--rose); }
 .nav-btn .nav-icon { font-size:1.15rem; display:block; margin-bottom:3px; }
 
@@ -269,12 +270,12 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ NAV ═══════════ -->
 <nav class="nav" style="display:none">
-  <button class="nav-btn active" onclick="showPage('agenda',this)"><span class="nav-icon">📅</span>Agenda</button>
-  <button class="nav-btn" onclick="showPage('clientes',this)"><span class="nav-icon">👤</span>Clientes</button>
-  <button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button>
-  <button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button>
-  <button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button>
-  <button class="nav-btn" id="nav-config" style="display:none" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button>
+  <div class="nav-cell"><button class="nav-btn active" onclick="showPage('agenda',this)"><span class="nav-icon">📅</span>Agenda</button></div>
+  <div class="nav-cell"><button class="nav-btn" onclick="showPage('clientes',this)"><span class="nav-icon">👤</span>Clientes</button></div>
+  <div class="nav-cell"><button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button></div>
+  <div class="nav-cell"><button class="nav-btn" onclick="showPage('servicos',this)"><span class="nav-icon">✨</span>Serviços</button></div>
+  <div class="nav-cell"><button class="nav-btn" onclick="showPage('faturamento',this)"><span class="nav-icon">💰</span>Financeiro</button></div>
+  <div class="nav-cell" id="nav-config" style="display:none"><button class="nav-btn" onclick="showPage('config',this)"><span class="nav-icon">⚙️</span>Config</button></div>
 </nav>
 
 <!-- ═══════════ AGENDA ═══════════ -->
@@ -2061,7 +2062,7 @@ function finalizarLogin() {
   document.getElementById('user-label').textContent = f.nome;
   atualizarAvatarHeader();
   document.getElementById('sync-dot').style.display = 'block';
-  if (currentUser === 1) document.getElementById('nav-config').style.display = 'flex';
+  if (currentUser === 1) document.getElementById('nav-config').style.display = 'block';
   initApp();
   startSync();
 }
