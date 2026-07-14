@@ -2057,7 +2057,7 @@ function cancelarSenha() {
 function finalizarLogin() {
   document.getElementById('login-page').style.display = 'none';
   document.querySelector('.header').style.display = 'flex';
-  document.querySelector('.nav').style.display = 'grid';
+  document.querySelector('.nav').style.display = 'flex';
   const f = FUNCIONARIOS.find(x => x.id === currentUser);
   document.getElementById('user-label').textContent = f.nome;
   atualizarAvatarHeader();
