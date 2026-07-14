@@ -30,20 +30,20 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 .header {
   background: linear-gradient(135deg, #4a3137 0%, #8e5963 55%, #bf7f89 100%);
   color: white; padding: 12px 16px 10px;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between; gap:10px;
   position: sticky; top: 0; z-index: 100;
   box-shadow: 0 2px 14px rgba(42,31,31,0.22);
 }
 .header::after { content:''; position:absolute; left:0; right:0; top:0; height:45%; background:linear-gradient(180deg,rgba(255,255,255,0.13),rgba(255,255,255,0)); pointer-events:none; }
-.header-logo { font-family:'Cormorant Garamond',serif; font-size:1.24rem; font-weight:800; letter-spacing:0.035em; line-height:1.05; color:#fff7ef; text-shadow:0 1px 3px rgba(42,31,31,0.25); }
+.header-logo { font-family:'Cormorant Garamond',serif; font-size:1.24rem; font-weight:800; letter-spacing:0.035em; line-height:1.15; color:#fff7ef; text-shadow:0 1px 3px rgba(42,31,31,0.25); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .header-logo span { display:block; font-size:0.62rem; font-family:'DM Sans',sans-serif; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#f4dfd4; opacity:0.95; margin-top:2px; }
+.header-logo-sub { font-size:0.68rem; font-family:'DM Sans',sans-serif; font-weight:500; color:#f4dfd4; opacity:0.85; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .header-user { font-size:0.76rem; background:rgba(255,255,255,0.12); border-radius:18px; padding:5px 11px; cursor:pointer; transition:background 0.2s; }
 .header-user:hover { background:rgba(255,255,255,0.2); }
 
 /* ── NAV ── */
-.nav { display:flex; background:var(--white); border-bottom:1px solid var(--rose-light); position:sticky; top:52px; z-index:90; overflow-x:auto; }
-.nav::-webkit-scrollbar { display:none; }
-.nav-btn { flex:1; min-width:60px; padding:11px 4px 10px; font-size:0.63rem; font-weight:600; text-align:center; border:none; background:none; cursor:pointer; color:var(--mid); border-bottom:3px solid transparent; transition:all 0.2s; letter-spacing:0.04em; text-transform:uppercase; }
+.nav { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; background:var(--white); border-bottom:1px solid var(--rose-light); position:sticky; top:52px; z-index:90; }
+.nav-btn { min-width:0; padding:10px 2px 9px; font-size:0.6rem; font-weight:600; text-align:center; border:none; background:none; cursor:pointer; color:var(--mid); border-bottom:3px solid transparent; transition:all 0.2s; letter-spacing:0.02em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nav-btn.active { color:var(--rose-dark); border-bottom-color:var(--rose); }
 .nav-btn .nav-icon { font-size:1.15rem; display:block; margin-bottom:3px; }
 
@@ -253,8 +253,11 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ HEADER ═══════════ -->
 <div class="header">
-  <div class="header-logo" id="header-nome-studio">Meu Studio</div>
-  <div style="display:flex;align-items:center;gap:8px">
+  <div style="min-width:0;flex:1">
+    <div class="header-logo" id="header-nome-studio">Meu Studio</div>
+    <div class="header-logo-sub" id="header-endereco-studio" style="display:none"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
     <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#4caf50;display:none"></div>
     <div style="display:flex;align-items:center;gap:6px">
       <div id="user-avatar" onclick="abrirTrocaFoto()" style="width:34px;height:34px;border-radius:50%;overflow:hidden;cursor:pointer;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:2px solid rgba(255,255,255,0.4)">👤</div>
@@ -306,14 +309,15 @@ textarea { resize:vertical; min-height:80px; }
 
 <!-- ═══════════ FUNCIONÁRIOS ═══════════ -->
 <div class="page" id="page-funcionarios">
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-num" id="stat-hoje">0</div>
-      <div class="stat-label">Agendamentos Hoje</div>
+  <div style="background:var(--white);border-radius:14px;box-shadow:var(--shadow-sm);margin-bottom:16px;display:flex;align-items:center;padding:14px 10px">
+    <div style="flex:1;text-align:center">
+      <div class="stat-num sm" id="stat-hoje">0</div>
+      <div class="stat-label">Agendamentos hoje</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-semana">0</div>
-      <div class="stat-label">Esta Semana</div>
+    <div style="width:1px;align-self:stretch;background:var(--rose-light)"></div>
+    <div style="flex:1;text-align:center">
+      <div class="stat-num sm" id="stat-semana">0</div>
+      <div class="stat-label">Esta semana</div>
     </div>
   </div>
   <div class="card">
@@ -991,22 +995,38 @@ function getConfig(campo, fallback) {
   return (configStudio && configStudio[campo]) ? configStudio[campo] : fallback;
 }
 
-function ajustarFonteAoEspaco(el, tamanhoMax = 34, tamanhoMin = 16) {
+function ajustarFonteAoEspaco(el, tamanhoMax = 34, tamanhoMin = 16, linhas = 2.1) {
   if (!el) return;
-  const alturaMaxima = tamanhoMax * 1.15 * 2.1; // permite até ~2 linhas antes de reduzir
   let tamanho = tamanhoMax;
   el.style.fontSize = tamanho + 'px';
-  // Reduz progressivamente até o texto caber em até 2 linhas
-  while (el.scrollHeight > (tamanho * 1.15 * 2.1) && tamanho > tamanhoMin) {
-    tamanho -= 1;
-    el.style.fontSize = tamanho + 'px';
+  if (linhas <= 1) {
+    // Texto em 1 linha só (nowrap): reduz enquanto o texto for mais largo que o espaço disponível
+    while (el.scrollWidth > el.clientWidth && tamanho > tamanhoMin) {
+      tamanho -= 1;
+      el.style.fontSize = tamanho + 'px';
+    }
+  } else {
+    // Texto pode quebrar em várias linhas: reduz enquanto a altura ultrapassar o permitido
+    while (el.scrollHeight > (tamanho * 1.15 * linhas) && tamanho > tamanhoMin) {
+      tamanho -= 1;
+      el.style.fontSize = tamanho + 'px';
+    }
   }
 }
 
 function atualizarHeaderNome() {
   const nome = getConfig('nome', 'Meu Studio');
   const el = document.getElementById('header-nome-studio');
-  if (el) el.textContent = nome;
+  if (el) {
+    el.textContent = nome;
+    ajustarFonteAoEspaco(el, 20, 12, 1);
+  }
+  const endereco = getConfig('endereco', '');
+  const elEnd = document.getElementById('header-endereco-studio');
+  if (elEnd) {
+    if (endereco) { elEnd.textContent = endereco; elEnd.style.display = 'block'; }
+    else { elEnd.style.display = 'none'; }
+  }
   const elLogin = document.getElementById('login-nome-studio');
   if (elLogin) {
     elLogin.textContent = nome;
@@ -1458,10 +1478,9 @@ function renderFaturamento() {
   }
 
   html += `<div class="card" style="margin-bottom:14px">
-    <div class="card-title">💰 Faturamento do Mês</div>
-    <div style="background:var(--light);border-radius:12px;padding:16px;margin-bottom:12px;text-align:center">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--rose-dark)">${formatarMoeda(totalGeral)}</div>
-      <div style="font-size:0.72rem;color:var(--mid);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px">Total do Mês</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div class="card-title" style="margin-bottom:0">💰 Faturamento do Mês</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:700;color:var(--rose-dark);white-space:nowrap">${formatarMoeda(totalGeral)}</div>
     </div>`;
 
   if (!ehDono) {
@@ -1845,20 +1864,17 @@ function renderListaEquipeConfig() {
   const el = document.getElementById('lista-equipe-config');
   if (!el) return;
   el.innerHTML = FUNCIONARIOS.map(f => `
-    <div style="padding:10px 0;border-bottom:1px solid var(--light)">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <span style="font-weight:600">${f.emoji} ${f.nome}</span>
-          ${f.id === 1 ? '<span style="font-size:0.7rem;color:var(--rose-dark);margin-left:6px">Admin</span>' : ''}
-          ${f.tipo === 'socio' ? '<span style="font-size:0.7rem;color:var(--gold);margin-left:6px">🤝 Sócio</span>' : ''}
-          <div style="font-size:0.75rem;color:var(--mid)">${f.role||''}</div>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="abrirModalEditarProf(${f.id})">✏️</button>
-          ${f.id !== 1 ? `<button class="btn btn-ghost btn-sm" style="color:#e74c3c" onclick="removerProfissional(${f.id})">🗑️</button>` : ''}
-        </div>
+    <div style="padding:9px 0;border-bottom:1px solid var(--light);display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <div style="min-width:0">
+        <span style="font-weight:600">${f.emoji} ${f.nome}</span>
+        ${f.id === 1 ? '<span style="font-size:0.68rem;color:var(--rose-dark);margin-left:5px">Admin</span>' : ''}
+        <div style="font-size:0.75rem;color:var(--mid)">${f.role||''}</div>
       </div>
-      ${f.id !== 1 ? `<button class="btn btn-ghost btn-sm btn-full" style="margin-top:6px" onclick="alternarTipoSocio(${f.id})">${f.tipo==='socio' ? '👤 Tornar Funcionário' : '🤝 Tornar Sócio'}</button>` : ''}
+      <div style="display:flex;gap:5px;flex-shrink:0;align-items:center">
+        ${f.id !== 1 ? `<button onclick="alternarTipoSocio(${f.id})" title="${f.tipo==='socio' ? 'Tornar funcionário' : 'Tornar sócio'}" style="border:1px solid ${f.tipo==='socio'?'var(--gold)':'var(--light)'};background:${f.tipo==='socio'?'var(--gold-light)':'var(--light)'};color:${f.tipo==='socio'?'#8a6d1f':'var(--mid)'};border-radius:20px;padding:5px 10px;font-size:0.68rem;font-weight:600;white-space:nowrap;cursor:pointer">🤝 ${f.tipo==='socio' ? 'Sócio' : 'Sócio?'}</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="abrirModalEditarProf(${f.id})">✏️</button>
+        ${f.id !== 1 ? `<button class="btn btn-ghost btn-sm" style="color:#e74c3c" onclick="removerProfissional(${f.id})">🗑️</button>` : ''}
+      </div>
     </div>
   `).join('');
 }
