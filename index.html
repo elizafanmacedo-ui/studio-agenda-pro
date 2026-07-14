@@ -188,6 +188,7 @@ textarea { resize:vertical; min-height:80px; }
 }
 .login-banner-wrap {
   width:100%; flex-shrink:0;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 48px);
 }
 .login-banner-wrap img {
   width:100%; display:block; object-fit:cover;
@@ -225,7 +226,6 @@ textarea { resize:vertical; min-height:80px; }
 <!-- ═══════════ LOGIN ═══════════ -->
 <div id="login-page">
   <div class="login-banner-wrap">
-    <img src="" alt="Logo do Studio" id="login-banner-img">
     <div id="login-nome-studio" style="text-align:center;font-family:'Cormorant Garamond',serif;font-weight:700;color:#ffffff;text-shadow:0 2px 6px rgba(0,0,0,0.4);padding:0 20px;line-height:1.15"></div>
   </div>
   <div class="login-card">
