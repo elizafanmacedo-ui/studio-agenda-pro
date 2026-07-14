@@ -42,7 +42,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(
 .header-user:hover { background:rgba(255,255,255,0.2); }
 
 /* ── NAV ── */
-.nav { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; background:var(--white); border-bottom:1px solid var(--rose-light); position:sticky; top:52px; z-index:90; }
+.nav { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); background:var(--white); border-bottom:1px solid var(--rose-light); position:sticky; top:52px; z-index:90; }
 .nav-btn { min-width:0; padding:10px 2px 9px; font-size:0.6rem; font-weight:600; text-align:center; border:none; background:none; cursor:pointer; color:var(--mid); border-bottom:3px solid transparent; transition:all 0.2s; letter-spacing:0.02em; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nav-btn.active { color:var(--rose-dark); border-bottom-color:var(--rose); }
 .nav-btn .nav-icon { font-size:1.15rem; display:block; margin-bottom:3px; }
@@ -252,7 +252,7 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <!-- ═══════════ HEADER ═══════════ -->
-<div class="header">
+<div class="header" style="display:none">
   <div style="min-width:0;flex:1">
     <div class="header-logo" id="header-nome-studio">Meu Studio</div>
     <div class="header-logo-sub" id="header-endereco-studio" style="display:none"></div>
@@ -268,7 +268,7 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <!-- ═══════════ NAV ═══════════ -->
-<nav class="nav">
+<nav class="nav" style="display:none">
   <button class="nav-btn active" onclick="showPage('agenda',this)"><span class="nav-icon">📅</span>Agenda</button>
   <button class="nav-btn" onclick="showPage('clientes',this)"><span class="nav-icon">👤</span>Clientes</button>
   <button class="nav-btn" onclick="showPage('funcionarios',this)"><span class="nav-icon">💅</span>Equipe</button>
@@ -2055,6 +2055,8 @@ function cancelarSenha() {
 
 function finalizarLogin() {
   document.getElementById('login-page').style.display = 'none';
+  document.querySelector('.header').style.display = 'flex';
+  document.querySelector('.nav').style.display = 'grid';
   const f = FUNCIONARIOS.find(x => x.id === currentUser);
   document.getElementById('user-label').textContent = f.nome;
   atualizarAvatarHeader();
@@ -2067,6 +2069,8 @@ function finalizarLogin() {
 function logout() {
   if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
   document.getElementById('login-page').style.display = 'flex';
+  document.querySelector('.header').style.display = 'none';
+  document.querySelector('.nav').style.display = 'none';
   document.getElementById('sync-dot').style.display = 'none';
   document.getElementById('nav-config').style.display = 'none';
   currentUser = null;
